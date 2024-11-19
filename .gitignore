@@ -1,0 +1,7 @@
+# Created by venv; see https://docs.python.org/3/library/venv.html
+[I|i]nclude
+[L|l]ib
+[S|s]cripts
+pyvenv.cfg
+venv
+.venv
