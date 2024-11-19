@@ -78,18 +78,22 @@ def generate_key(output):
     "--password", "-p", required=True, help="Password to derive the encryption key."
 )
 @click.option(
-    "--salt", "-s", required=True, help="Salt for key derivation (16 bytes as hex)."
+    "--salt", "-s", required=False, help="Salt for key derivation (16 bytes as hex)."
 )
 @click.option(
     "--output", "-o", required=True, help="Path to save the derived encryption key."
 )
-def generate_key_from_password(password, salt, output):
+def generate_key_from_password(password, output, salt=None):
     """
     Derive an encryption key from a password and salt.
     """
     if len(salt) != 32:  # Hex-encoded salt should be 16 bytes
         raise click.BadParameter("Salt must be 16 bytes (32 hex characters).")
-    salt_bytes = bytes.fromhex(salt)
+    
+    if salt is None:
+        salt_bytes = None
+    else:
+        salt_bytes = bytes.fromhex(salt)
     key = derive_key(password, salt_bytes)
     with open(output, "wb") as key_file:
         key_file.write(key)

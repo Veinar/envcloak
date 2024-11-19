@@ -5,19 +5,22 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
-
-
-# Constants
-AES_BLOCK_SIZE = 128  # Block size for AES
-NONCE_SIZE = 12  # Recommended size for GCM nonce
-KEY_SIZE = 32  # 256-bit key
-SALT_SIZE = 16  # Salt size for key derivation
+from .constants import NONCE_SIZE, KEY_SIZE, SALT_SIZE
 
 
 def derive_key(password: str, salt: bytes) -> bytes:
     """
     Derive a cryptographic key from a password and salt using PBKDF2.
+    :param password: User-provided password.
+    :param salt: Salt for key derivation (must be 16 bytes).
+    :return: Derived key (32 bytes for AES-256).
     """
+    if len(salt) != SALT_SIZE:
+        raise ValueError(f"Salt must be exactly {SALT_SIZE} bytes.")
+    
+    if salt is None:
+        salt = generate_salt()
+
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
         length=KEY_SIZE,
@@ -26,6 +29,14 @@ def derive_key(password: str, salt: bytes) -> bytes:
         backend=default_backend(),
     )
     return kdf.derive(password.encode())
+
+
+def generate_salt() -> bytes:
+    """
+    Generate a secure random salt of the standard size.
+    :return: Randomly generated salt (16 bytes).
+    """
+    return os.urandom(SALT_SIZE)
 
 
 def encrypt(data: str, key: bytes) -> dict:
