@@ -27,9 +27,7 @@ class EncryptedEnvLoader:
             key = kf.read()
 
         # Decrypt the file to a temporary file with the same extension
-        temp_decrypted_path = self.file_path.with_suffix(
-            self.file_path.suffix + ".tmp"
-        )
+        temp_decrypted_path = self.file_path.with_suffix(self.file_path.suffix + ".tmp")
         decrypt_file(self.file_path, temp_decrypted_path, key)
 
         # Detect file format and parse it
@@ -48,7 +46,7 @@ class EncryptedEnvLoader:
         """
         cleaned_suffix = file_path.name.replace(".enc", "").replace(".tmp", "")
         base_suffix = Path(cleaned_suffix).suffix
-    
+
         if base_suffix in {".json"}:  # JSON
             with open(file_path, "r", encoding="utf-8") as f:
                 return json.load(f)
