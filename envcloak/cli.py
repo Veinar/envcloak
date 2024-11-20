@@ -1,6 +1,10 @@
 import os
+from pathlib import Path
 import click
-from .encryptor import encrypt_file, decrypt_file, derive_key
+from envcloak.encryptor import encrypt_file, decrypt_file
+from envcloak.generator import generate_key_file, generate_key_from_password_file
+from envcloak.utils import add_to_gitignore
+
 
 @click.group()
 def main():
@@ -63,14 +67,18 @@ def decrypt(input, output, key_file):
 @click.option(
     "--output", "-o", required=True, help="Path to save the generated encryption key."
 )
-def generate_key(output):
+@click.option(
+    "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
+)
+def generate_key(output, no_gitignore):
     """
     Generate a new encryption key.
     """
-    key = os.urandom(32)  # Generate a 256-bit random key
-    with open(output, "wb") as key_file:
-        key_file.write(key)
-    click.echo(f"Encryption key generated and saved to {output}")
+    output_path = Path(output)
+
+    generate_key_file(output_path)
+    if not no_gitignore:
+        add_to_gitignore(output_path.parent, output_path.name)
 
 
 @click.command()
@@ -83,21 +91,18 @@ def generate_key(output):
 @click.option(
     "--output", "-o", required=True, help="Path to save the derived encryption key."
 )
-def generate_key_from_password(password, output, salt=None):
+@click.option(
+    "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
+)
+def generate_key_from_password(password, output, salt, no_gitignore):
     """
     Derive an encryption key from a password and salt.
     """
-    if len(salt) != 32:  # Hex-encoded salt should be 16 bytes
-        raise click.BadParameter("Salt must be 16 bytes (32 hex characters).")
-    
-    if salt is None:
-        salt_bytes = None
-    else:
-        salt_bytes = bytes.fromhex(salt)
-    key = derive_key(password, salt_bytes)
-    with open(output, "wb") as key_file:
-        key_file.write(key)
-    click.echo(f"Derived encryption key saved to {output}")
+    output_path = Path(output)
+
+    generate_key_from_password_file(password, output_path, salt)
+    if not no_gitignore:
+        add_to_gitignore(output_path.parent, output_path.name)
 
 
 @click.command()

@@ -17,7 +17,7 @@ def derive_key(password: str, salt: bytes) -> bytes:
     """
     if len(salt) != SALT_SIZE:
         raise ValueError(f"Salt must be exactly {SALT_SIZE} bytes.")
-    
+
     if salt is None:
         salt = generate_salt()
 
