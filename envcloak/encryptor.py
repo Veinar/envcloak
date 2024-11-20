@@ -71,7 +71,9 @@ def decrypt(encrypted_data: dict, key: bytes) -> str:
     ciphertext = base64.b64decode(encrypted_data["ciphertext"])
     tag = base64.b64decode(encrypted_data["tag"])
 
-    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend())
+    cipher = Cipher(
+        algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend()
+    )
     decryptor = cipher.decryptor()
     plaintext = decryptor.update(ciphertext) + decryptor.finalize()
 
@@ -86,12 +88,12 @@ def encrypt_file(input_file: str, output_file: str, key: bytes):
     :param output_file: Path to save the encrypted file.
     :param key: Encryption key (32 bytes for AES-256).
     """
-    with open(input_file, 'r', encoding='utf-8') as infile:
+    with open(input_file, "r", encoding="utf-8") as infile:
         data = infile.read()
 
     encrypted_data = encrypt(data, key)
 
-    with open(output_file, 'w', encoding='utf-8') as outfile:
+    with open(output_file, "w", encoding="utf-8") as outfile:
         json.dump(encrypted_data, outfile, ensure_ascii=False)
 
 
@@ -103,10 +105,10 @@ def decrypt_file(input_file: str, output_file: str, key: bytes):
     :param output_file: Path to save the decrypted file.
     :param key: Decryption key (32 bytes for AES-256).
     """
-    with open(input_file, 'r', encoding='utf-8') as infile:
+    with open(input_file, "r", encoding="utf-8") as infile:
         encrypted_data = json.load(infile)
 
     decrypted_data = decrypt(encrypted_data, key)
 
-    with open(output_file, 'w', encoding='utf-8') as outfile:
+    with open(output_file, "w", encoding="utf-8") as outfile:
         outfile.write(decrypted_data)
