@@ -51,8 +51,8 @@ dev = [
 "Bug Tracker" = "https://github.com/Veinar/envcloak/issues"
 "Documentation" = "https://github.com/Veinar/envcloak#readme"
 
-[tool.setuptools]
-packages = ["envcloak"]
-
 [project.scripts]
 envcloak = "envcloak.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
