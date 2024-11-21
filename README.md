@@ -7,49 +7,23 @@
 ![Code style](https://img.shields.io/badge/code%20style-black-black)
 ![CI/CD Pipeline](https://github.com/Veinar/envcloak/actions/workflows/test_and_build.yaml/badge.svg)
 
+![PyPI - Status](https://img.shields.io/pypi/status/envcloak?label=pypi%20status)
+![PyPI - Version](https://img.shields.io/pypi/v/envcloak)
+
+
 
 Welcome to EnvCloak, the ultimate sidekick for developers, ops folks, and anyone who’s ever accidentally committed an API key to version control. (Yes, I know… it happens to the best of us. 😅) EnvCloak takes the stress out of managing environment variables by wrapping them in the cozy blanket of encryption, so you can focus on building awesome things—without the lingering fear of a security breach.
 
-## 🌟 Key Features
+## 🛠️ Installation
 
-🔒 Encryption & Decryption
-
-* Encryption: Securely encrypt environment variables to safely store them in repositories or share them among team members. Secrets stay secrets, even in the wild.
-* Decryption: Seamlessly decrypt variables at runtime or during deployment. Your app gets what it needs without compromising security.
-
-🎯 Ease of Use
-
-* Simple Commands: Easy-to-use CLI commands or library functions for both encrypting and decrypting variables. No degree in cryptography required!
-* Workflow Integration: Works beautifully with your development pipelines, CI/CD setups, and deployment scripts.
-
-🔑 Key Management
-
-* Local Keys: Use locally stored encryption keys for simplicity.
-* Key Rotation: Rotate keys like a pro without breaking a sweat—or your workflow.
-
-🧩 Compatibility
-
-* Python Support: Tailored for Python-based applications.
-* Docker-Friendly: Perfect for decrypting data before your containerized app kicks off.
-* File Format Variety: Handles .env, JSON, YAML, XML—you name it, we encrypt it. (Except your cat photos. Sorry.)
-
-🛡️ Security Best Practices
-
-* Strong Encryption: Leveraging AES-256-GCM because your secrets deserve the best.
-* Secure Storage: Encrypted files and keys adhere to industry best practices for safety.
-* Access Control: Keep decryption power limited to authorized users only.
-
-🤖 Automation-Friendly
-
-* Scriptable: Designed for hands-off use in scripts and automated processes.
-* CI/CD Integration: Works with GitHub Actions, Jenkins, GitLab CI/CD, and more. Your pipeline just got smarter.
-
-## 🎯 Usage Scenarios
-
-* Version Control Safety: Encrypt variables before committing. Because finding your database password on GitHub is a vibe... just not a good one.
-* Team Collaboration: Share encrypted secrets without causing sleepless nights.
-* Deployment Security: Inject secrets securely at runtime, no hardcoding required.
-* CI/CD Love: Test and deploy without storing plaintext secrets in your pipeline.
+In order to install `envcloak` simply run:
+```bash
+pip install envcloak
+```
+or if you want `dev` tools too 😎:
+```bash
+pip install envcloak[dev]
+```
 
 ## 🚀 Example Workflow
 
