@@ -1,0 +1,30 @@
+<environment>
+    <!-- Database credentials -->
+    <DB_USERNAME>example_username</DB_USERNAME>
+    <DB_PASSWORD>example_password</DB_PASSWORD>
+
+    <!-- API keys -->
+    <API_KEY>example_api_key</API_KEY>
+    <API_SECRET>example_api_secret</API_SECRET>
+
+    <!-- OAuth tokens -->
+    <ACCESS_TOKEN>example_access_token</ACCESS_TOKEN>
+    <REFRESH_TOKEN>example_refresh_token</REFRESH_TOKEN>
+
+    <!-- AWS credentials -->
+    <AWS_ACCESS_KEY_ID>example_access_key_id</AWS_ACCESS_KEY_ID>
+    <AWS_SECRET_ACCESS_KEY>example_secret_access_key</AWS_SECRET_ACCESS_KEY>
+
+    <!-- Encryption keys -->
+    <JWT_SECRET>example_jwt_secret</JWT_SECRET>
+    <ENCRYPTION_KEY>example_encryption_key</ENCRYPTION_KEY>
+
+    <!-- Third-party service credentials -->
+    <SENDGRID_API_KEY>example_sendgrid_api_key</SENDGRID_API_KEY>
+    <STRIPE_SECRET_KEY>example_stripe_secret_key</STRIPE_SECRET_KEY>
+    <GOOGLE_CLIENT_SECRET>example_google_client_secret</GOOGLE_CLIENT_SECRET>
+
+    <!-- Miscellaneous secrets -->
+    <SECRET_KEY_BASE>example_secret_key_base</SECRET_KEY_BASE>
+    <SESSION_SECRET>example_session_secret</SESSION_SECRET>
+</environment>
