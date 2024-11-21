@@ -99,7 +99,9 @@ def test_encrypt(mock_encrypt_file, runner, isolated_mock_files):
 
     assert result.exit_code == 0
     assert "File" in result.output
-    mock_encrypt_file.assert_called_once_with(str(input_file), str(encrypted_file), key_file.read_bytes())
+    mock_encrypt_file.assert_called_once_with(
+        str(input_file), str(encrypted_file), key_file.read_bytes()
+    )
 
 
 @patch("envcloak.cli.decrypt_file")
@@ -131,12 +133,16 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
 
     assert result.exit_code == 0
     assert "File" in result.output
-    mock_decrypt_file.assert_called_once_with(str(encrypted_file), str(decrypted_file), key_file.read_bytes())
+    mock_decrypt_file.assert_called_once_with(
+        str(encrypted_file), str(decrypted_file), key_file.read_bytes()
+    )
 
 
 @patch("envcloak.cli.add_to_gitignore")
 @patch("envcloak.cli.generate_key_file")
-def test_generate_key_with_gitignore(mock_generate_key_file, mock_add_to_gitignore, runner, test_dir):
+def test_generate_key_with_gitignore(
+    mock_generate_key_file, mock_add_to_gitignore, runner, test_dir
+):
     """
     Test the `generate-key` CLI command with default behavior (adds to .gitignore).
     """
@@ -157,14 +163,18 @@ def test_generate_key_with_gitignore(mock_generate_key_file, mock_add_to_gitigno
 
 @patch("envcloak.cli.add_to_gitignore")
 @patch("envcloak.cli.generate_key_file")
-def test_generate_key_no_gitignore(mock_generate_key_file, mock_add_to_gitignore, runner, test_dir):
+def test_generate_key_no_gitignore(
+    mock_generate_key_file, mock_add_to_gitignore, runner, test_dir
+):
     """
     Test the `generate-key` CLI command with the `--no-gitignore` flag.
     """
     key_file = test_dir / "random.key"
 
     # Simulate CLI behavior with `--no-gitignore`
-    result = runner.invoke(main, ["generate-key", "--output", str(key_file), "--no-gitignore"])
+    result = runner.invoke(
+        main, ["generate-key", "--output", str(key_file), "--no-gitignore"]
+    )
 
     # Assert CLI ran without errors
     assert result.exit_code == 0
@@ -215,7 +225,6 @@ def test_generate_key_from_password_with_gitignore(
 
     # Verify `add_to_gitignore` was called
     mock_add_to_gitignore.assert_called_once_with(key_file.parent, key_file.name)
-
 
 
 @patch("envcloak.cli.add_to_gitignore")
@@ -303,10 +312,14 @@ def test_rotate_keys(mock_encrypt_file, mock_decrypt_file, runner, isolated_mock
     assert "Keys rotated" in result.output
 
     # Ensure `decrypt_file` was called to create the temporary file
-    mock_decrypt_file.assert_called_once_with(str(encrypted_file), tmp_file, key_file.read_bytes())
+    mock_decrypt_file.assert_called_once_with(
+        str(encrypted_file), tmp_file, key_file.read_bytes()
+    )
 
     # Ensure `encrypt_file` was called with the temporary file
-    mock_encrypt_file.assert_called_once_with(tmp_file, str(decrypted_file), new_key_file.read_bytes())
+    mock_encrypt_file.assert_called_once_with(
+        tmp_file, str(decrypted_file), new_key_file.read_bytes()
+    )
 
     # Confirm that the temporary file is deleted by the CLI
     assert not os.path.exists(tmp_file), f"Temporary file {tmp_file} was not deleted"
