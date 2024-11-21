@@ -27,6 +27,25 @@ pip install envcloak[dev]
 
 ## 🚀 Example Workflow
 
+> ℹ️ More examples are present in [examples](./examples) section.
+
+### Generating key:
+
+```bash
+# With password and salt
+envcloak generate-key-from-password --password "YourTopSecretPassword" \
+--salt "e3a1c8b0d4f6e2c7a5b9d6f0cr2ad1a2" --output secretkey.key
+
+# With password without salt (we will add random salt then)
+envcloak generate-key-from-password --password "YourTopSecretPassword" --output secretkey.key
+
+# From random password and salt
+envcloak generate-key --output secretkey.key
+```
+> **What it does:** generates your private key used to encrypt and decrypt files. **Appends (or creates if needed) .gitignore as well** as super-hero should! 🎉
+
+> ⚠ **If someone knows your password and salt (option 1) can recreate same key.** ⚠
+
 ### Encrypting Variables:
 
 ```bash
@@ -40,7 +59,6 @@ envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 ```
 > **What it does:** Decrypts the `.env.enc` file back to `.env` using the same key. Voilà!
-
 
 or you may want to use it ...
 
