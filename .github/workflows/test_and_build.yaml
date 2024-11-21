@@ -9,13 +9,19 @@ on:
       - 'develop'
 
 jobs:
-  test:
-    name: Run Tests
+  setup:
+    name: Setup Environment
     runs-on: ubuntu-latest
-
+    outputs:
+      cache-key: ${{ steps.cache.outputs.cache-hit }}
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
+      - name: Cache Python dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
+          restore-keys: python-cache-${{ runner.os }}-
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -23,28 +29,43 @@ jobs:
           python-version: '3.9'
 
       - name: Install Dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install pytest
+          pip install -e .[dev]
 
-      - name: Run Tests
-        run: pytest -v tests/
-
-  lint:
-    name: Lint Code
+  test:
+    name: Run Tests
+    needs: setup
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Use Cached Dependencies
+        uses: actions/cache@v3
         with:
-          python-version: '3.9'
+          path: ~/.cache/pip
+          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
 
-      - name: Install Pylint
-        run: pip install pylint
+      - name: Run Tests
+        run: pytest -v tests/
+
+  lint:
+    name: Lint Code
+    needs: setup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Use Cached Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
 
       - name: Run Lint
         run: pylint envcloak/
@@ -52,19 +73,18 @@ jobs:
 
   security-check:
     name: Security Check
+    needs: setup
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Use Cached Dependencies
+        uses: actions/cache@v3
         with:
-          python-version: '3.9'
-
-      - name: Install Bandit
-        run: pip install bandit
+          path: ~/.cache/pip
+          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
 
       - name: Run Bandit
         run: bandit -v -r envcloak/
@@ -82,10 +102,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Use Cached Dependencies
+        uses: actions/cache@v3
         with:
-          python-version: '3.9'
+          path: ~/.cache/pip
+          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
 
       - name: Install Build Tools
         run: |
@@ -99,5 +120,4 @@ jobs:
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: |
-          twine upload dist/*
+        run: twine upload dist/*
