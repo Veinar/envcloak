@@ -33,7 +33,8 @@ dependencies = [
     "click>=8.0.0",
     "python-dotenv>=0.21.0",
     "pyyaml>=5.4.1",
-    "cryptography>=3.4.7"
+    "cryptography>=3.4.7",
+    "defusedxml>=0.7.1"
 ]
 requires-python = ">=3.8"
 

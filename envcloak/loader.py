@@ -1,9 +1,9 @@
 import os
 import json
 from pathlib import Path
-from xml.etree import ElementTree
 import yaml
 from dotenv import dotenv_values
+from defusedxml.ElementTree import parse as safe_parse
 from envcloak.encryptor import decrypt_file
 
 
@@ -66,7 +66,7 @@ class EncryptedEnvLoader:
         :param file_path: Path to the XML file.
         :return: Dictionary of environment variables.
         """
-        tree = ElementTree.parse(file_path)
+        tree = safe_parse(file_path)
         root = tree.getroot()
         env_dict = {}
         for child in root:

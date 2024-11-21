@@ -2,6 +2,11 @@
 
 > "Because Your Secrets Deserve Better Than Plaintext!"
 
+![GitHub License](https://img.shields.io/github/license/Veinar/envcloak)
+![Contrib Welcome](https://img.shields.io/badge/contributions-welcome-yellow)
+![Code style](https://img.shields.io/badge/code%20style-black-black)
+
+
 Welcome to EnvCloak, the ultimate sidekick for developers, ops folks, and anyone who’s ever accidentally committed an API key to version control. (Yes, I know… it happens to the best of us. 😅) EnvCloak takes the stress out of managing environment variables by wrapping them in the cozy blanket of encryption, so you can focus on building awesome things—without the lingering fear of a security breach.
 
 ## 🌟 Key Features
