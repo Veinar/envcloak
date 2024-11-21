@@ -9,20 +9,11 @@ on:
       - 'develop'
 
 jobs:
-  setup:
-    name: Setup Environment
+  test:
+    name: Run Tests
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache.outputs.cache-hit }}
-    steps:
-      - name: Cache Python dependencies
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
-          restore-keys: python-cache-${{ runner.os }}-
 
+    steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
@@ -36,38 +27,26 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           pip install -e .[dev]
 
-  test:
-    name: Run Tests
-    needs: setup
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Use Cached Dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
-
       - name: Run Tests
         run: pytest -v tests/
 
   lint:
     name: Lint Code
-    needs: setup
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Use Cached Dependencies
-        uses: actions/cache@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          path: ~/.cache/pip
-          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e .[dev]
 
       - name: Run Lint
         run: pylint envcloak/
@@ -75,18 +54,21 @@ jobs:
 
   security-check:
     name: Security Check
-    needs: setup
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Use Cached Dependencies
-        uses: actions/cache@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          path: ~/.cache/pip
-          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
+          python-version: '3.9'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          pip install -e .[dev]
 
       - name: Run Bandit
         run: bandit -v -r envcloak/
@@ -104,11 +86,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Use Cached Dependencies
-        uses: actions/cache@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          path: ~/.cache/pip
-          key: python-cache-${{ runner.os }}-${{ hashFiles('**/pyproject.toml') }}
+          python-version: '3.9'
 
       - name: Install Build Tools
         run: |
