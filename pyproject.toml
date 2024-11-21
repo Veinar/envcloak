@@ -53,3 +53,6 @@ dev = [
 
 [tool.setuptools]
 packages = ["envcloak"]
+
+[project.scripts]
+envcloak = "envcloak.cli:main"
