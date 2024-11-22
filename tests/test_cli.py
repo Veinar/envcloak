@@ -324,6 +324,7 @@ def test_rotate_keys(mock_encrypt_file, mock_decrypt_file, runner, isolated_mock
     # Confirm that the temporary file is deleted by the CLI
     assert not os.path.exists(tmp_file), f"Temporary file {tmp_file} was not deleted"
 
+
 def test_encrypt_with_mixed_input_and_directory(runner, mock_files):
     """
     Test the `encrypt` CLI command with mixed `--input` and `--directory` usage.
