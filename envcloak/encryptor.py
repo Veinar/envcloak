@@ -5,7 +5,15 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
-from .constants import NONCE_SIZE, KEY_SIZE, SALT_SIZE
+from envcloak.exceptions import (
+    InvalidSaltException,
+    InvalidKeyException,
+    EncryptionException,
+    DecryptionException,
+    FileEncryptionException,
+    FileDecryptionException,
+)
+from envcloak.constants import NONCE_SIZE, KEY_SIZE, SALT_SIZE
 
 
 def derive_key(password: str, salt: bytes) -> bytes:
@@ -16,19 +24,20 @@ def derive_key(password: str, salt: bytes) -> bytes:
     :return: Derived key (32 bytes for AES-256).
     """
     if len(salt) != SALT_SIZE:
-        raise ValueError(f"Salt must be exactly {SALT_SIZE} bytes.")
-
-    if salt is None:
-        salt = generate_salt()
-
-    kdf = PBKDF2HMAC(
-        algorithm=hashes.SHA256(),
-        length=KEY_SIZE,
-        salt=salt,
-        iterations=100000,
-        backend=default_backend(),
-    )
-    return kdf.derive(password.encode())
+        raise InvalidSaltException(
+            details=f"Expected salt of size {SALT_SIZE}, got {len(salt)} bytes."
+        )
+    try:
+        kdf = PBKDF2HMAC(
+            algorithm=hashes.SHA256(),
+            length=KEY_SIZE,
+            salt=salt,
+            iterations=100000,
+            backend=default_backend(),
+        )
+        return kdf.derive(password.encode())
+    except Exception as e:
+        raise InvalidKeyException(details=str(e)) from e
 
 
 def generate_salt() -> bytes:
@@ -36,7 +45,10 @@ def generate_salt() -> bytes:
     Generate a secure random salt of the standard size.
     :return: Randomly generated salt (16 bytes).
     """
-    return os.urandom(SALT_SIZE)
+    try:
+        return os.urandom(SALT_SIZE)
+    except Exception as e:
+        raise EncryptionException(details=f"Failed to generate salt: {str(e)}") from e
 
 
 def encrypt(data: str, key: bytes) -> dict:
@@ -47,16 +59,21 @@ def encrypt(data: str, key: bytes) -> dict:
     :param key: Encryption key (32 bytes for AES-256).
     :return: Dictionary with encrypted data, nonce, and associated metadata.
     """
-    nonce = os.urandom(NONCE_SIZE)  # Generate a secure random nonce
-    cipher = Cipher(algorithms.AES(key), modes.GCM(nonce), backend=default_backend())
-    encryptor = cipher.encryptor()
-    ciphertext = encryptor.update(data.encode()) + encryptor.finalize()
+    try:
+        nonce = os.urandom(NONCE_SIZE)  # Generate a secure random nonce
+        cipher = Cipher(
+            algorithms.AES(key), modes.GCM(nonce), backend=default_backend()
+        )
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(data.encode()) + encryptor.finalize()
 
-    return {
-        "ciphertext": base64.b64encode(ciphertext).decode(),
-        "nonce": base64.b64encode(nonce).decode(),
-        "tag": base64.b64encode(encryptor.tag).decode(),
-    }
+        return {
+            "ciphertext": base64.b64encode(ciphertext).decode(),
+            "nonce": base64.b64encode(nonce).decode(),
+            "tag": base64.b64encode(encryptor.tag).decode(),
+        }
+    except Exception as e:
+        raise EncryptionException(details=str(e)) from e
 
 
 def decrypt(encrypted_data: dict, key: bytes) -> str:
@@ -67,17 +84,20 @@ def decrypt(encrypted_data: dict, key: bytes) -> str:
     :param key: Decryption key (32 bytes for AES-256).
     :return: Decrypted plaintext.
     """
-    nonce = base64.b64decode(encrypted_data["nonce"])
-    ciphertext = base64.b64decode(encrypted_data["ciphertext"])
-    tag = base64.b64decode(encrypted_data["tag"])
+    try:
+        nonce = base64.b64decode(encrypted_data["nonce"])
+        ciphertext = base64.b64decode(encrypted_data["ciphertext"])
+        tag = base64.b64decode(encrypted_data["tag"])
 
-    cipher = Cipher(
-        algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend()
-    )
-    decryptor = cipher.decryptor()
-    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+        cipher = Cipher(
+            algorithms.AES(key), modes.GCM(nonce, tag), backend=default_backend()
+        )
+        decryptor = cipher.decryptor()
+        plaintext = decryptor.update(ciphertext) + decryptor.finalize()
 
-    return plaintext.decode()
+        return plaintext.decode()
+    except Exception as e:
+        raise DecryptionException(details=str(e)) from e
 
 
 def encrypt_file(input_file: str, output_file: str, key: bytes):
@@ -88,13 +108,16 @@ def encrypt_file(input_file: str, output_file: str, key: bytes):
     :param output_file: Path to save the encrypted file.
     :param key: Encryption key (32 bytes for AES-256).
     """
-    with open(input_file, "r", encoding="utf-8") as infile:
-        data = infile.read()
+    try:
+        with open(input_file, "r", encoding="utf-8") as infile:
+            data = infile.read()
 
-    encrypted_data = encrypt(data, key)
+        encrypted_data = encrypt(data, key)
 
-    with open(output_file, "w", encoding="utf-8") as outfile:
-        json.dump(encrypted_data, outfile, ensure_ascii=False)
+        with open(output_file, "w", encoding="utf-8") as outfile:
+            json.dump(encrypted_data, outfile, ensure_ascii=False)
+    except Exception as e:
+        raise FileEncryptionException(details=str(e)) from e
 
 
 def decrypt_file(input_file: str, output_file: str, key: bytes):
@@ -105,10 +128,13 @@ def decrypt_file(input_file: str, output_file: str, key: bytes):
     :param output_file: Path to save the decrypted file.
     :param key: Decryption key (32 bytes for AES-256).
     """
-    with open(input_file, "r", encoding="utf-8") as infile:
-        encrypted_data = json.load(infile)
+    try:
+        with open(input_file, "r", encoding="utf-8") as infile:
+            encrypted_data = json.load(infile)
 
-    decrypted_data = decrypt(encrypted_data, key)
+        decrypted_data = decrypt(encrypted_data, key)
 
-    with open(output_file, "w", encoding="utf-8") as outfile:
-        outfile.write(decrypted_data)
+        with open(output_file, "w", encoding="utf-8") as outfile:
+            outfile.write(decrypted_data)
+    except Exception as e:
+        raise FileDecryptionException(details=str(e)) from e

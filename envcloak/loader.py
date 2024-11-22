@@ -5,6 +5,13 @@ import yaml
 from dotenv import dotenv_values
 from defusedxml.ElementTree import parse as safe_parse
 from envcloak.encryptor import decrypt_file
+from envcloak.exceptions import (
+    EncryptedEnvLoaderException,
+    KeyFileNotFoundException,
+    EncryptedFileNotFoundException,
+    FileDecryptionException,
+    UnsupportedFileFormatException,
+)
 
 
 class EncryptedEnvLoader:
@@ -22,21 +29,43 @@ class EncryptedEnvLoader:
         """
         Load and decrypt the environment variables file.
         """
-        # Read the key
-        with open(self.key_file, "rb") as kf:
-            key = kf.read()
+        try:
+            # Ensure key file exists
+            if not self.key_file.exists():
+                raise KeyFileNotFoundException(details=str(self.key_file))
 
-        # Decrypt the file to a temporary file with the same extension
-        temp_decrypted_path = self.file_path.with_suffix(self.file_path.suffix + ".tmp")
-        decrypt_file(self.file_path, temp_decrypted_path, key)
+            # Ensure encrypted file exists
+            if not self.file_path.exists():
+                raise EncryptedFileNotFoundException(details=str(self.file_path))
 
-        # Detect file format and parse it
-        self.decrypted_data = self._parse_file(temp_decrypted_path)
+            # Read the key
+            with open(self.key_file, "rb") as kf:
+                key = kf.read()
 
-        # Clean up the temporary file
-        os.remove(temp_decrypted_path)
+            # Decrypt the file to a temporary file with the same extension
+            temp_decrypted_path = self.file_path.with_suffix(
+                self.file_path.suffix + ".tmp"
+            )
+            try:
+                decrypt_file(self.file_path, temp_decrypted_path, key)
+            except FileDecryptionException as e:
+                raise EncryptedEnvLoaderException(
+                    "Decryption failed during file processing.", details=str(e)
+                ) from e
 
-        return self
+            # Detect file format and parse it
+            self.decrypted_data = self._parse_file(temp_decrypted_path)
+
+            # Clean up the temporary file
+            os.remove(temp_decrypted_path)
+            return self
+
+        except EncryptedEnvLoaderException:
+            raise
+        except Exception as e:
+            raise EncryptedEnvLoaderException(
+                "An unexpected error occurred during the load process.", details=str(e)
+            ) from e
 
     def _parse_file(self, file_path: Path):
         """
@@ -47,18 +76,27 @@ class EncryptedEnvLoader:
         cleaned_suffix = file_path.name.replace(".enc", "").replace(".tmp", "")
         base_suffix = Path(cleaned_suffix).suffix
 
-        if base_suffix in {".json"}:  # JSON
-            with open(file_path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        elif base_suffix in {".yaml", ".yml"}:  # YAML
-            with open(file_path, "r", encoding="utf-8") as f:
-                return yaml.safe_load(f)
-        elif base_suffix in {".xml"}:  # XML
-            return self._parse_xml(file_path)
-        elif base_suffix in {".env", ""}:  # Plaintext
-            return dotenv_values(file_path)
-        else:
-            raise ValueError(f"Unsupported file format after cleaning: {base_suffix}")
+        try:
+            if base_suffix in {".json"}:  # JSON
+                with open(file_path, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            elif base_suffix in {".yaml", ".yml"}:  # YAML
+                with open(file_path, "r", encoding="utf-8") as f:
+                    return yaml.safe_load(f)
+            elif base_suffix in {".xml"}:  # XML
+                return self._parse_xml(file_path)
+            elif base_suffix in {".env", ""}:  # Plaintext
+                return dotenv_values(file_path)
+            else:
+                raise UnsupportedFileFormatException(
+                    details=f"File format detected: {base_suffix}"
+                )
+        except UnsupportedFileFormatException:
+            raise
+        except Exception as e:
+            raise EncryptedEnvLoaderException(
+                "Failed to parse the decrypted file.", details=str(e)
+            ) from e
 
     def _parse_xml(self, file_path: Path):
         """
@@ -66,19 +104,26 @@ class EncryptedEnvLoader:
         :param file_path: Path to the XML file.
         :return: Dictionary of environment variables.
         """
-        tree = safe_parse(file_path)
-        root = tree.getroot()
-        env_dict = {}
-        for child in root:
-            env_dict[child.tag] = child.text
-        return env_dict
+        try:
+            tree = safe_parse(file_path)
+            root = tree.getroot()
+            env_dict = {}
+            for child in root:
+                env_dict[child.tag] = child.text
+            return env_dict
+        except Exception as e:
+            raise EncryptedEnvLoaderException(
+                "Failed to parse XML file.", details=str(e)
+            ) from e
 
     def to_os_env(self):
         """
         Load decrypted environment variables into os.environ.
         """
         if not self.decrypted_data:
-            raise ValueError("Decrypted data is not loaded. Call `load()` first.")
+            raise EncryptedEnvLoaderException(
+                "Decrypted data is not loaded.", "Call `load()` first."
+            )
 
         for key, value in self.decrypted_data.items():
             os.environ[key] = value
@@ -94,6 +139,10 @@ def load_encrypted_env(file_path: str, key_file: str) -> EncryptedEnvLoader:
     :param key_file: Path to the encryption key file.
     :return: EncryptedEnvLoader instance
     """
-    loader = EncryptedEnvLoader(file_path, key_file)
-    loader.load()  # Automatically load decrypted data
-    return loader
+    try:
+        loader = EncryptedEnvLoader(file_path, key_file)
+        loader.load()  # Automatically load decrypted data
+        return loader
+    except EncryptedEnvLoaderException as e:
+        print(e)
+        raise

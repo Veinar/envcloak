@@ -11,6 +11,7 @@ from envcloak.encryptor import (
     encrypt_file,
     decrypt_file,
 )
+from envcloak.exceptions import InvalidSaltException
 from envcloak.constants import SALT_SIZE, KEY_SIZE, NONCE_SIZE
 
 
@@ -36,11 +37,14 @@ def test_derive_key():
 
 def test_derive_key_invalid_salt():
     """
-    Test that derive_key raises an error for invalid salt sizes.
+    Test that derive_key raises an InvalidSaltException for invalid salt sizes.
     """
     password = "test_password"
     invalid_salt = os.urandom(SALT_SIZE - 1)  # Smaller than expected
-    with pytest.raises(ValueError, match=f"Salt must be exactly {SALT_SIZE} bytes."):
+    with pytest.raises(
+        InvalidSaltException,
+        match=f"Expected salt of size {SALT_SIZE}, got {SALT_SIZE - 1} bytes.",
+    ):
         derive_key(password, invalid_salt)
 
 
