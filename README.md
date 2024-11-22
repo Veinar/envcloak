@@ -1,3 +1,8 @@
+
+<p align="center">
+<img src="https://veinar.pl/envcloak.png" alt="logo" width="350"/>
+</p>
+
 # 🔒 EnvCloak
 
 > "Because Your Secrets Deserve Better Than Plaintext!"
@@ -86,17 +91,41 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 🗂️ File Handling
 
 * Works with individual files.
+* Works with directories using `--directory` instead of `--input` on `encrypt` and `decrypt`.
+> ℹ️ EnvCloak process files in batch one-by-one. 
 
 🚦 Error Handling
 
 * Clear, friendly error messages for any hiccups.
 * Gracefully handles missing keys or corrupted files.
 
+✅ Compatibility of pipelines and systems
+
+* k8s / OKD / OCP deployments
+* Jenkins pipelines
+* Azure Pipelines
+* Github Workflows
+* Gitlab CI/CD Pipelines
+
+
 ## 🎉 Why EnvCloak?
 
 Because you deserve peace of mind. EnvCloak wraps your environment variables in layers of encryption goodness, protecting them from prying eyes and accidental slips. Whether you’re a solo dev or part of a big team, this tool is here to make managing secrets simple, secure, and downright pleasant.
 
 So go ahead—secure your `.env` like a boss. And remember, EnvCloak isn’t just a tool; it’s your secret-keeping partner in crime. (But the good kind of crime. 😎)
+
+### Comparison of EnvCloak with Alternatives
+
+| Tool          | Strengths                               | Weaknesses                              |
+|---------------|----------------------------------------|-----------------------------------------|
+| **EnvCloak**  | Lightweight, Python-native, simple to integrate with CI/CD workflows. | Limited ecosystem compared to established tools. |
+| [**Sops**](https://github.com/mozilla/sops)      | Integrates with cloud providers, supports partial file encryption. | More complex to configure for beginners. |
+| [**BlackBox**](https://github.com/StackExchange/blackbox)  | Simple file-based encryption for Git repos. | Limited to GPG, lacks flexibility.     |
+| [**Vault**](https://www.vaultproject.io/)     | Robust, enterprise-grade with dynamic secrets. | High complexity, overkill for small projects. |
+| [**Confidant**](https://lyft.github.io/confidant/) | AWS IAM integration, designed for secure CI/CD workflows. | Requires AWS, limited to its ecosystem. |
+| [**Doppler**](https://www.doppler.com/)   | Centralized secret management with CI/CD integration. | Paid plans for advanced features, cloud-reliant. |
+
+> **Key Differentiator for EnvCloak**: Focused specifically on Python developers and lightweight CI/CD needs, making it ideal for small to medium projects.
 
 ## 🔗 Get Started Today!
 
