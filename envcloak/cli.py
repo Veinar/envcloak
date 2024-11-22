@@ -7,6 +7,7 @@ from envcloak.utils import add_to_gitignore
 
 
 @click.group()
+@click.version_option(prog_name="EnvCloak")
 def main():
     """
     EnvCloak: Securely manage encrypted environment variables.
