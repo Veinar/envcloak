@@ -150,6 +150,146 @@ jobs:
 
 ---
 
+
+## Using Envcloak for Secure Variable Management in Kubernetes Environments
+
+In Kubernetes-based systems, sensitive configuration data such as API keys, database credentials, or other environment variables are typically stored securely using **Secrets**. These secrets can be encrypted and managed securely with tools like **Envcloak**. Below is a workflow describing how to integrate Envcloak into Kubernetes deployments for decrypting and utilizing sensitive environment variables.
+
+---
+
+### **Workflow Overview:**
+
+1. **Encrypt Sensitive Variables:**
+   - Use Envcloak to encrypt sensitive environment variables before committing them to a Git repository. Store the encrypted `.env.enc` file in your application repository.
+
+2. **Store Decryption Key Securely:**
+   - The decryption key (Base64-encoded) is stored in a Kubernetes Secret.
+
+3. **Configure Your Deployment:**
+   - Mount the Kubernetes Secret as an environment variable in your pod or as a file.
+
+4. **Decrypt at Runtime:**
+   - Use an **initContainer** or **entrypoint script** to decrypt the `.env.enc` file into a usable `.env` format before starting your application.
+
+---
+
+### **Example Kubernetes Manifest**
+
+Below is an example of deploying an application that uses Envcloak to securely decrypt environment variables.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: secure-app
+  labels:
+    app: secure-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: secure-app
+  template:
+    metadata:
+      labels:
+        app: secure-app
+    spec:
+      containers:
+      - name: app-container
+        image: my-app:latest
+        command: ["/bin/bash", "-c", "--"]
+        args: ["source /app/.env && exec python app.py"]
+        env:
+        - name: ENVCLOAK_KEY_B64
+          valueFrom:
+            secretKeyRef:
+              name: envcloak-key
+              key: ENVCLOAK_KEY_B64
+        volumeMounts:
+        - name: decrypted-env
+          mountPath: /app/.env
+          subPath: .env
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+      # Where magic happens
+      initContainers:
+      - name: decrypt-env
+        image: python:3.9
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          pip install envcloak &&
+          echo "$ENVCLOAK_KEY_B64" | base64 --decode > /app/mykey.key &&
+          envcloak decrypt --input /app/.env.enc --output /app/.env --key-file /app/mykey.key
+        env:
+        - name: ENVCLOAK_KEY_B64
+          valueFrom:
+            secretKeyRef:
+              name: envcloak-key
+              key: ENVCLOAK_KEY_B64
+        volumeMounts:
+        - name: encrypted-env
+          mountPath: /app/.env.enc
+          subPath: .env.enc
+        - name: decrypted-env
+          mountPath: /app/.env
+          subPath: .env
+      volumes:
+      - name: encrypted-env
+        configMap:
+          name: encrypted-env-file
+      - name: decrypted-env
+        emptyDir: {}
+
+```
+
+---
+
+### **Key Components Explained:**
+
+1. **Secrets for Decryption Key:**
+   - The Base64-encoded decryption key is stored securely in Kubernetes Secrets.
+
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: envcloak-key
+   type: Opaque
+   data:
+     ENVCLOAK_KEY_B64: <base64-encoded-key>
+   ```
+
+2. **ConfigMap for Encrypted File:**
+   - The encrypted `.env.enc` file is stored in a ConfigMap.
+
+   ```yaml
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: encrypted-env-file
+   data:
+     .env.enc: |
+       <contents-of-encrypted-file>
+   ```
+
+3. **InitContainer for Decryption:**
+   - The `decrypt-env` InitContainer decrypts the `.env.enc` file into a usable `.env` file.
+
+4. **Application Container:**
+   - The main container sources the decrypted `.env` file before executing the application.
+
+### **Benefits of This Approach:**
+- **Secure Variable Management**: Secrets are encrypted and stored securely, minimizing exposure.
+- **Flexibility**: The decryption process is abstracted, making it compatible with different workflows.
+- **Compliance**: Sensitive information is never stored in plaintext within the repository or directly in Kubernetes manifests.
+
+This method ensures robust security and seamless integration of sensitive environment variables in Kubernetes deployments.
+
+---
+
 ## Using EnvCloak in Python Code
 
 ### **GitHub Actions: Using Python Code for Decryption**
