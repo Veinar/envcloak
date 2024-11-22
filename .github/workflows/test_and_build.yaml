@@ -80,7 +80,9 @@ jobs:
       - test
       - lint
       - security-check
-    if: github.ref == 'refs/heads/main'  # Only run on the main branch
+    if: >
+      (github.ref == 'refs/heads/main') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     steps:
       - name: Checkout Repository
