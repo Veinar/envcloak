@@ -14,6 +14,7 @@
 
 ![PyPI - Status](https://img.shields.io/pypi/status/envcloak?label=pypi%20status)
 ![PyPI - Version](https://img.shields.io/pypi/v/envcloak)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/envcloak)
 
 
 
@@ -49,7 +50,7 @@ envcloak generate-key --output secretkey.key
 ```
 > **What it does:** generates your private key used to encrypt and decrypt files. **Appends (or creates if needed) .gitignore as well** as super-hero should! 🎉
 
-> ⚠ **If someone knows your password and salt (option 1) can recreate same key.** ⚠
+> ⚠ **If someone knows your password and salt (option 1) can recreate same `key` - keep those variables safe as `key` itself** ⚠
 
 ### Encrypting Variables:
 
