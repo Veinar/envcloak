@@ -82,7 +82,7 @@ jobs:
       - security-check
     if: >
       (github.ref == 'refs/heads/main') ||
-      (github.event_name == 'pull_request' && github.base_ref == 'main')  # Include PR merges targeting main
+      (github.event_name == 'pull_request' && github.base_ref == 'main')
 
     steps:
       - name: Checkout Repository
