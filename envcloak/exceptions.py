@@ -40,9 +40,27 @@ class UnsupportedFileFormatException(EncryptedEnvLoaderException):
     default_message = "Unsupported file format detected."
 
 
-#### Cryptography exceptions
+class DirectoryEmptyException(EncryptedEnvLoaderException):
+    """Raised when an input directory is empty."""
+
+    default_message = "The provided input directory is empty."
 
 
+class OutputFileExistsException(EncryptedEnvLoaderException):
+    """Raised when the output file already exists and may be overwritten."""
+
+    default_message = (
+        "The output file or directory already exists and will be overwritten."
+    )
+
+
+class DiskSpaceException(EncryptedEnvLoaderException):
+    """Raised when there is insufficient disk space."""
+
+    default_message = "Insufficient disk space available for this operation."
+
+
+#### Cryptography Exceptions
 class CryptographyException(Exception):
     """Base exception for cryptographic errors."""
 

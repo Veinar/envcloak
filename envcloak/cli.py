@@ -4,6 +4,24 @@ import click
 from envcloak.encryptor import encrypt_file, decrypt_file
 from envcloak.generator import generate_key_file, generate_key_from_password_file
 from envcloak.utils import add_to_gitignore
+from envcloak.validation import (
+    check_file_exists,
+    check_directory_exists,
+    check_directory_not_empty,
+    check_output_not_exists,
+    check_permissions,
+    check_disk_space,
+    validate_salt,
+)
+from envcloak.exceptions import (
+    KeyFileNotFoundException,
+    DirectoryEmptyException,
+    OutputFileExistsException,
+    DiskSpaceException,
+    InvalidSaltException,
+    FileEncryptionException,
+    FileDecryptionException,
+)
 
 
 @click.group()
@@ -34,43 +52,64 @@ def main():
 @click.option(
     "--key-file", "-k", required=True, help="Path to the encryption key file."
 )
-def encrypt(input, directory, output, key_file):
+@click.option(
+    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
+)
+def encrypt(input, directory, output, key_file, dry_run):
     """
     Encrypt environment variables from a file or all files in a directory.
     """
-    if not input and not directory:
-        raise click.UsageError("You must provide either --input or --directory.")
-    if input and directory:
-        raise click.UsageError(
-            "You must provide either --input or --directory, not both."
-        )
-
-    with open(key_file, "rb") as kf:
-        key = kf.read()
-
-    if input:
-        # Encrypt a single file
-        encrypt_file(input, output, key)
-        click.echo(f"File {input} encrypted -> {output} using key {key_file}")
-    elif directory:
-        # Encrypt all files in the directory
-        input_dir = Path(directory)
-        output_dir = Path(output)
-
-        if not input_dir.is_dir():
+    try:
+        if not input and not directory:
+            raise click.UsageError("You must provide either --input or --directory.")
+        if input and directory:
             raise click.UsageError(
-                f"The specified directory does not exist: {directory}"
+                "You must provide either --input or --directory, not both."
             )
-        if not output_dir.exists():
-            output_dir.mkdir(parents=True)
 
-        for file in input_dir.iterdir():
-            if file.is_file():  # Skip directories
-                output_file = output_dir / (file.name + ".enc")
-                encrypt_file(str(file), str(output_file), key)
-                click.echo(
-                    f"File {file} encrypted -> {output_file} using key {key_file}"
-                )
+        if dry_run:
+            # Dry-run validation
+            if input:
+                check_file_exists(input)
+                check_permissions(input)
+            if directory:
+                check_directory_exists(directory)
+                check_directory_not_empty(directory)
+            check_file_exists(key_file)
+            check_permissions(key_file)
+            check_output_not_exists(output)
+            check_disk_space(output, required_space=1024 * 1024)
+            click.echo("Dry-run checks passed successfully.")
+            return
+
+        # Actual encryption logic
+        with open(key_file, "rb") as kf:
+            key = kf.read()
+
+        if input:
+            encrypt_file(input, output, key)
+            click.echo(f"File {input} encrypted -> {output} using key {key_file}")
+        elif directory:
+            input_dir = Path(directory)
+            output_dir = Path(output)
+            if not output_dir.exists():
+                output_dir.mkdir(parents=True)
+
+            for file in input_dir.iterdir():
+                if file.is_file():  # Skip directories
+                    output_file = output_dir / (file.name + ".enc")
+                    encrypt_file(str(file), str(output_file), key)
+                    click.echo(
+                        f"File {file} encrypted -> {output_file} using key {key_file}"
+                    )
+    except (
+        KeyFileNotFoundException,
+        DirectoryEmptyException,
+        OutputFileExistsException,
+        DiskSpaceException,
+        FileEncryptionException,
+    ) as e:
+        click.echo(f"Error during encryption: {str(e)}")
 
 
 @click.command()
@@ -95,43 +134,64 @@ def encrypt(input, directory, output, key_file):
 @click.option(
     "--key-file", "-k", required=True, help="Path to the decryption key file."
 )
-def decrypt(input, directory, output, key_file):
+@click.option(
+    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
+)
+def decrypt(input, directory, output, key_file, dry_run):
     """
     Decrypt environment variables from a file or all files in a directory.
     """
-    if not input and not directory:
-        raise click.UsageError("You must provide either --input or --directory.")
-    if input and directory:
-        raise click.UsageError(
-            "You must provide either --input or --directory, not both."
-        )
-
-    with open(key_file, "rb") as kf:
-        key = kf.read()
-
-    if input:
-        # Decrypt a single file
-        decrypt_file(input, output, key)
-        click.echo(f"File {input} decrypted -> {output} using key {key_file}")
-    elif directory:
-        # Decrypt all files in the directory
-        input_dir = Path(directory)
-        output_dir = Path(output)
-
-        if not input_dir.is_dir():
+    try:
+        if not input and not directory:
+            raise click.UsageError("You must provide either --input or --directory.")
+        if input and directory:
             raise click.UsageError(
-                f"The specified directory does not exist: {directory}"
+                "You must provide either --input or --directory, not both."
             )
-        if not output_dir.exists():
-            output_dir.mkdir(parents=True)
 
-        for file in input_dir.iterdir():
-            if file.is_file() and file.suffix == ".enc":  # Only decrypt .enc files
-                output_file = output_dir / file.stem  # Remove .enc from filename
-                decrypt_file(str(file), str(output_file), key)
-                click.echo(
-                    f"File {file} decrypted -> {output_file} using key {key_file}"
-                )
+        if dry_run:
+            # Dry-run validation
+            if input:
+                check_file_exists(input)
+                check_permissions(input)
+            if directory:
+                check_directory_exists(directory)
+                check_directory_not_empty(directory)
+            check_file_exists(key_file)
+            check_permissions(key_file)
+            check_output_not_exists(output)
+            check_disk_space(output, required_space=1024 * 1024)
+            click.echo("Dry-run checks passed successfully.")
+            return
+
+        # Actual decryption logic
+        with open(key_file, "rb") as kf:
+            key = kf.read()
+
+        if input:
+            decrypt_file(input, output, key)
+            click.echo(f"File {input} decrypted -> {output} using key {key_file}")
+        elif directory:
+            input_dir = Path(directory)
+            output_dir = Path(output)
+            if not output_dir.exists():
+                output_dir.mkdir(parents=True)
+
+            for file in input_dir.iterdir():
+                if file.is_file() and file.suffix == ".enc":  # Only decrypt .enc files
+                    output_file = output_dir / file.stem  # Remove .enc from filename
+                    decrypt_file(str(file), str(output_file), key)
+                    click.echo(
+                        f"File {file} decrypted -> {output_file} using key {key_file}"
+                    )
+    except (
+        KeyFileNotFoundException,
+        DirectoryEmptyException,
+        OutputFileExistsException,
+        DiskSpaceException,
+        FileDecryptionException,
+    ) as e:
+        click.echo(f"Error during decryption: {str(e)}")
 
 
 @click.command()
@@ -141,15 +201,27 @@ def decrypt(input, directory, output, key_file):
 @click.option(
     "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
 )
-def generate_key(output, no_gitignore):
+@click.option(
+    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
+)
+def generate_key(output, no_gitignore, dry_run):
     """
     Generate a new encryption key.
     """
-    output_path = Path(output)
+    try:
+        if dry_run:
+            check_output_not_exists(output)
+            check_disk_space(output, required_space=32)
+            click.echo("Dry-run checks passed successfully.")
+            return
 
-    generate_key_file(output_path)
-    if not no_gitignore:
-        add_to_gitignore(output_path.parent, output_path.name)
+        # Actual key generation logic
+        output_path = Path(output)
+        generate_key_file(output_path)
+        if not no_gitignore:
+            add_to_gitignore(output_path.parent, output_path.name)
+    except (OutputFileExistsException, DiskSpaceException) as e:
+        click.echo(f"Error during key generation: {str(e)}")
 
 
 @click.command()
@@ -165,15 +237,29 @@ def generate_key(output, no_gitignore):
 @click.option(
     "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
 )
-def generate_key_from_password(password, output, salt, no_gitignore):
+@click.option(
+    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
+)
+def generate_key_from_password(password, salt, output, no_gitignore, dry_run):
     """
     Derive an encryption key from a password and salt.
     """
-    output_path = Path(output)
+    try:
+        if dry_run:
+            check_output_not_exists(output)
+            check_disk_space(output, required_space=32)
+            if salt:
+                validate_salt(salt)
+            click.echo("Dry-run checks passed successfully.")
+            return
 
-    generate_key_from_password_file(password, output_path, salt)
-    if not no_gitignore:
-        add_to_gitignore(output_path.parent, output_path.name)
+        # Actual key derivation logic
+        output_path = Path(output)
+        generate_key_from_password_file(password, output_path, salt)
+        if not no_gitignore:
+            add_to_gitignore(output_path.parent, output_path.name)
+    except (OutputFileExistsException, DiskSpaceException, InvalidSaltException) as e:
+        click.echo(f"Error during key derivation: {str(e)}")
 
 
 @click.command()
@@ -187,20 +273,45 @@ def generate_key_from_password(password, output, salt, no_gitignore):
     "--new-key-file", "-nk", required=True, help="Path to the new encryption key."
 )
 @click.option("--output", "-o", required=True, help="Path to the re-encrypted file.")
-def rotate_keys(input, old_key_file, new_key_file, output):
+@click.option(
+    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
+)
+def rotate_keys(input, old_key_file, new_key_file, output, dry_run):
     """
     Rotate encryption keys by re-encrypting a file with a new key.
     """
-    with open(old_key_file, "rb") as okf:
-        old_key = okf.read()
-    with open(new_key_file, "rb") as nkf:
-        new_key = nkf.read()
-    # Decrypt with old key and re-encrypt with new key
-    temp_decrypted = f"{output}.tmp"
-    decrypt_file(input, temp_decrypted, old_key)
-    encrypt_file(temp_decrypted, output, new_key)
-    os.remove(temp_decrypted)  # Clean up temporary file
-    click.echo(f"Keys rotated for {input} -> {output}")
+    try:
+        if dry_run:
+            check_file_exists(input)
+            check_permissions(input)
+            check_file_exists(old_key_file)
+            check_permissions(old_key_file)
+            check_file_exists(new_key_file)
+            check_permissions(new_key_file)
+            check_output_not_exists(output)
+            check_disk_space(output, required_space=1024 * 1024)
+            click.echo("Dry-run checks passed successfully.")
+            return
+
+        # Actual key rotation logic
+        with open(old_key_file, "rb") as okf:
+            old_key = okf.read()
+        with open(new_key_file, "rb") as nkf:
+            new_key = nkf.read()
+
+        temp_decrypted = f"{output}.tmp"
+        decrypt_file(input, temp_decrypted, old_key)
+        encrypt_file(temp_decrypted, output, new_key)
+        os.remove(temp_decrypted)  # Clean up temporary file
+        click.echo(f"Keys rotated for {input} -> {output}")
+    except (
+        KeyFileNotFoundException,
+        OutputFileExistsException,
+        DiskSpaceException,
+        FileDecryptionException,
+        FileEncryptionException,
+    ) as e:
+        click.echo(f"Error during key rotation: {str(e)}")
 
 
 # Add all commands to the main group
