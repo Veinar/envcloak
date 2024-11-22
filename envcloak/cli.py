@@ -25,6 +25,7 @@ from envcloak.exceptions import (
 
 
 @click.group()
+@click.version_option(prog_name="EnvCloak")
 def main():
     """
     EnvCloak: Securely manage encrypted environment variables.
