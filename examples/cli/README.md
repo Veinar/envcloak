@@ -4,6 +4,8 @@ EnvCloak simplifies managing sensitive environment variables by encrypting and d
 
 ## Usage
 
+> **Dry Run:** With all required params **for each command** you can use `--dry-run` flag to check if command will pass or fail - without destroying your project 😅
+
 ### Key Generation
 
 #### 1. Generate a Key from a Password and Salt
