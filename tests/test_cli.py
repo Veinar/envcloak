@@ -2,6 +2,7 @@ import os
 import json
 import shutil
 import tempfile
+import uuid
 from pathlib import Path
 import pytest
 from click.testing import CliRunner
@@ -629,3 +630,422 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
         str(output_directory / "file2.env"),
         key_file.read_bytes(),
     )
+
+
+@patch("envcloak.cli.decrypt_file")
+def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command for two encrypted files.
+    """
+    # Paths for the files and keys
+    file1 = isolated_mock_files / "variables1.env"
+    file2 = isolated_mock_files / "variables2.env"
+    enc_file1 = isolated_mock_files / "variables1.env.enc"
+    enc_file2 = isolated_mock_files / "variables2.env.enc"
+    key_file = isolated_mock_files / "mykey.key"
+
+    # Create plaintext files with different content
+    file1.write_text("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
+    file2.write_text("DB_USERNAME=example_user\nDB_PASSWORD=wrong_pass")
+
+    # Generate the key using the CLI
+    result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
+    assert result.exit_code == 0, f"Failed to generate key: {result.output}"
+
+    # Encrypt the plaintext files using the CLI
+    result = runner.invoke(
+        main,
+        [
+            "encrypt",
+            "--input",
+            str(file1),
+            "--output",
+            str(enc_file1),
+            "--key-file",
+            str(key_file),
+        ],
+    )
+    assert result.exit_code == 0, f"Failed to encrypt file1: {result.output}"
+
+    result = runner.invoke(
+        main,
+        [
+            "encrypt",
+            "--input",
+            str(file2),
+            "--output",
+            str(enc_file2),
+            "--key-file",
+            str(key_file),
+        ],
+    )
+    assert result.exit_code == 0, f"Failed to encrypt file2: {result.output}"
+
+    # Mock decryption behavior
+    def mock_decrypt(input_path, output_path, key):
+        if "variables1" in str(input_path):
+            with open(output_path, "w") as f:
+                f.write("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
+        elif "variables2" in str(input_path):
+            with open(output_path, "w") as f:
+                f.write("DB_USERNAME=example_user\nDB_PASSWORD=wrong_pass")
+
+    mock_decrypt_file.side_effect = mock_decrypt
+
+    # Invoke the compare command
+    result = runner.invoke(
+        main,
+        [
+            "compare",
+            "--file1",
+            str(enc_file1),
+            "--file2",
+            str(enc_file2),
+            "--key1",
+            str(key_file),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "DB_PASSWORD=example_pass" in result.output
+    assert "DB_PASSWORD=wrong_pass" in result.output
+
+
+@patch("envcloak.cli.decrypt_file")
+def test_compare_directories(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command for two encrypted directories.
+    """
+    dir1 = isolated_mock_files / "dir1"
+    dir2 = isolated_mock_files / "dir2"
+    key_file = isolated_mock_files / f"mykey_{uuid.uuid4().hex}.key"
+
+    # Create directories
+    dir1.mkdir()
+    dir2.mkdir()
+
+    # Create plaintext files
+    (dir1 / "file1.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=example_pass"
+    )
+    (dir1 / "file2.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=another_pass"
+    )
+    (dir2 / "file1.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=example_pass"
+    )
+    (dir2 / "file3.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=missing_pass"
+    )
+
+    try:
+        # Generate the key
+        result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
+        assert "saved" in result.output, f"Failed to generate key: {result.output}"
+
+        # Encrypt files in both directories
+        for file in dir1.iterdir():
+            enc_file = dir1 / (file.name + ".enc")
+            result = runner.invoke(
+                main,
+                [
+                    "encrypt",
+                    "--input",
+                    str(file),
+                    "--output",
+                    str(enc_file),
+                    "--key-file",
+                    str(key_file),
+                ],
+            )
+            assert (
+                "encrypted" in result.output
+            ), f"Failed to encrypt {file.name} in dir1: {result.output}"
+            file.unlink()  # Remove plaintext file
+
+        for file in dir2.iterdir():
+            enc_file = dir2 / (file.name + ".enc")
+            result = runner.invoke(
+                main,
+                [
+                    "encrypt",
+                    "--input",
+                    str(file),
+                    "--output",
+                    str(enc_file),
+                    "--key-file",
+                    str(key_file),
+                ],
+            )
+            assert (
+                "encrypted" in result.output
+            ), f"Failed to encrypt {file.name} in dir2: {result.output}"
+            file.unlink()  # Remove plaintext file
+
+        # Mock decryption behavior
+        def mock_decrypt(input_path, output_path, key):
+            if "file1" in str(input_path):
+                with open(output_path, "w") as f:
+                    f.write("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
+            elif "file2" in str(input_path):
+                with open(output_path, "w") as f:
+                    f.write("DB_USERNAME=example_user\nDB_PASSWORD=another_pass")
+            elif "file3" in str(input_path):
+                with open(output_path, "w") as f:
+                    f.write("DB_USERNAME=example_user\nDB_PASSWORD=missing_pass")
+
+        mock_decrypt_file.side_effect = mock_decrypt
+
+        # Invoke the compare command
+        result = runner.invoke(
+            main,
+            [
+                "compare",
+                "--file1",
+                str(dir1),
+                "--file2",
+                str(dir2),
+                "--key1",
+                str(key_file),
+            ],
+        )
+
+        # Verify output
+        expected_output = "\n".join(
+            [
+                "File present in File1 but missing in File2: file2.env.enc",
+                "File present in File2 but missing in File1: file3.env.enc",
+            ]
+        )
+        assert expected_output in result.output
+    finally:
+        # Cleanup the key file
+        key_file.unlink(missing_ok=True)
+
+
+@patch("envcloak.cli.decrypt_file")
+def test_compare_non_compliant_files(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command for non-compliant (invalid encryption) files.
+    """
+    file1 = isolated_mock_files / "invalid1.env.enc"
+    file2 = isolated_mock_files / "invalid2.env.enc"
+    key_file = isolated_mock_files / f"mykey_{uuid.uuid4().hex}.key"
+
+    # Create non-compliant encrypted files (invalid encryption data)
+    file1.write_text("non-compliant content1")
+    file2.write_text("non-compliant content2")
+
+    try:
+        # Generate the key
+        result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
+        assert "saved" in result.output, f"Failed to generate key: {result.output}"
+
+        # Mock decryption behavior to raise an exception for invalid encryption
+        def mock_decrypt(input_path, output_path, key):
+            raise Exception(f"Decryption failed for {input_path}")
+
+        mock_decrypt_file.side_effect = mock_decrypt
+
+        # Invoke the compare command
+        result = runner.invoke(
+            main,
+            [
+                "compare",
+                "--file1",
+                str(file1),
+                "--file2",
+                str(file2),
+                "--key1",
+                str(key_file),
+            ],
+        )
+
+        # Verify output
+        assert "Decryption failed for" in result.output
+    finally:
+        # Cleanup the key file
+        key_file.unlink(missing_ok=True)
+
+
+@patch("envcloak.cli.decrypt_file")
+def test_compare_partially_same_files(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command for files with partially matching content.
+    """
+    file1 = isolated_mock_files / "variables1.env"
+    file2 = isolated_mock_files / "variables2.env"
+    enc_file1 = isolated_mock_files / "variables1.env.enc"
+    enc_file2 = isolated_mock_files / "variables2.env.enc"
+    key_file = isolated_mock_files / "mykey.key"
+
+    # Create plaintext files with partially matching content
+    file1.write_text("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
+    file2.write_text("DB_USERNAME=example_user\nDB_PASSWORD=different_pass")
+
+    # Generate the key
+    result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
+    assert result.exit_code == 0, f"Failed to generate key: {result.output}"
+
+    # Encrypt both files
+    runner.invoke(
+        main,
+        [
+            "encrypt",
+            "--input",
+            str(file1),
+            "--output",
+            str(enc_file1),
+            "--key-file",
+            str(key_file),
+        ],
+    )
+    runner.invoke(
+        main,
+        [
+            "encrypt",
+            "--input",
+            str(file2),
+            "--output",
+            str(enc_file2),
+            "--key-file",
+            str(key_file),
+        ],
+    )
+
+    # Mock decryption behavior
+    def mock_decrypt(input_path, output_path, key):
+        if "variables1" in str(input_path):
+            with open(output_path, "w") as f:
+                f.write("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
+        elif "variables2" in str(input_path):
+            with open(output_path, "w") as f:
+                f.write("DB_USERNAME=example_user\nDB_PASSWORD=different_pass")
+
+    mock_decrypt_file.side_effect = mock_decrypt
+
+    # Invoke the compare command
+    result = runner.invoke(
+        main,
+        [
+            "compare",
+            "--file1",
+            str(enc_file1),
+            "--file2",
+            str(enc_file2),
+            "--key1",
+            str(key_file),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "DB_PASSWORD=example_pass" in result.output
+    assert "DB_PASSWORD=different_pass" in result.output
+
+
+@patch("envcloak.cli.decrypt_file")
+def test_compare_directories_with_missing_and_extra_files(
+    mock_decrypt_file, runner, isolated_mock_files
+):
+    """
+    Test the `compare` CLI command for directories with missing and extra files.
+    """
+    dir1 = isolated_mock_files / "dir1"
+    dir2 = isolated_mock_files / "dir2"
+    key_file = isolated_mock_files / f"mykey_{uuid.uuid4().hex}.key"
+
+    # Create directories
+    dir1.mkdir()
+    dir2.mkdir()
+
+    # Create plaintext files
+    (dir1 / "file1.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=example_pass"
+    )
+    (dir1 / "file2.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=another_pass"
+    )
+    (dir2 / "file1.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=example_pass"
+    )
+    (dir2 / "file3.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=missing_pass"
+    )
+
+    try:
+        # Generate the key
+        result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
+        assert "saved" in result.output, f"Failed to generate key: {result.output}"
+
+        # Encrypt files in both directories
+        for file in dir1.iterdir():
+            enc_file = dir1 / (file.name + ".enc")
+            result = runner.invoke(
+                main,
+                [
+                    "encrypt",
+                    "--input",
+                    str(file),
+                    "--output",
+                    str(enc_file),
+                    "--key-file",
+                    str(key_file),
+                ],
+            )
+            file.unlink()  # Remove plaintext file
+
+        for file in dir2.iterdir():
+            enc_file = dir2 / (file.name + ".enc")
+            result = runner.invoke(
+                main,
+                [
+                    "encrypt",
+                    "--input",
+                    str(file),
+                    "--output",
+                    str(enc_file),
+                    "--key-file",
+                    str(key_file),
+                ],
+            )
+            file.unlink()  # Remove plaintext file
+
+        # Mock decryption behavior
+        def mock_decrypt(input_path, output_path, key):
+            if "file1" in str(input_path):
+                with open(output_path, "w") as f:
+                    f.write("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
+            elif "file2" in str(input_path):
+                with open(output_path, "w") as f:
+                    f.write("DB_USERNAME=example_user\nDB_PASSWORD=another_pass")
+            elif "file3" in str(input_path):
+                with open(output_path, "w") as f:
+                    f.write("DB_USERNAME=example_user\nDB_PASSWORD=missing_pass")
+
+        mock_decrypt_file.side_effect = mock_decrypt
+
+        # Invoke the compare command
+        result = runner.invoke(
+            main,
+            [
+                "compare",
+                "--file1",
+                str(dir1),
+                "--file2",
+                str(dir2),
+                "--key1",
+                str(key_file),
+            ],
+        )
+
+        # Verify output
+        expected_output = "\n".join(
+            [
+                "File present in File1 but missing in File2: file2.env.enc",
+                "File present in File2 but missing in File1: file3.env.enc",
+            ]
+        )
+        assert expected_output in result.output
+    finally:
+        # Cleanup the key file
+        key_file.unlink(missing_ok=True)

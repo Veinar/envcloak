@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 import shutil
+import difflib
+import tempfile
 import click
 from click import style
 from envcloak.encryptor import encrypt_file, decrypt_file
@@ -359,12 +361,172 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run):
         click.echo(f"Error during key rotation: {str(e)}")
 
 
+@click.command()
+@click.option(
+    "--file1",
+    "-f1",
+    required=True,
+    help="Path to the first encrypted file or directory.",
+)
+@click.option(
+    "--file2",
+    "-f2",
+    required=True,
+    help="Path to the second encrypted file or directory.",
+)
+@click.option(
+    "--key1", "-k1", required=True, help="Path to the decryption key file for file1."
+)
+@click.option(
+    "--key2",
+    "-k2",
+    required=False,
+    help="Path to the decryption key file for file2. If omitted, key1 is used.",
+)
+@click.option(
+    "--output",
+    "-o",
+    required=False,
+    help="Path to save the comparison result as a file.",
+)
+def compare(file1, file2, key1, key2, output):
+    """
+    Compare two encrypted environment files or directories.
+    """
+    try:
+        # Validate existence of files/directories and keys
+        if not os.path.exists(file1):
+            raise click.ClickException(f"File or directory not found: {file1}")
+        if not os.path.exists(file2):
+            raise click.ClickException(f"File or directory not found: {file2}")
+        if not os.path.exists(key1):
+            raise click.ClickException(f"Key file not found: {key1}")
+
+        key2 = key2 or key1
+        if not os.path.exists(key2):
+            raise click.ClickException(f"Key file not found: {key2}")
+
+        # Read decryption keys
+        with open(key1, "rb") as kf1, open(key2, "rb") as kf2:
+            key1_bytes = kf1.read()
+            key2_bytes = kf2.read()
+
+        # Create a temporary directory for decrypted files
+        with tempfile.TemporaryDirectory() as temp_dir:
+            file1_decrypted = os.path.join(temp_dir, "file1_decrypted")
+            file2_decrypted = os.path.join(temp_dir, "file2_decrypted")
+
+            if os.path.isfile(file1) and os.path.isfile(file2):
+                try:
+                    decrypt_file(file1, file1_decrypted, key1_bytes)
+                    decrypt_file(file2, file2_decrypted, key2_bytes)
+                except FileDecryptionException as e:
+                    raise click.ClickException(f"Decryption failed: {e}")
+
+                with (
+                    open(file1_decrypted, "r", encoding="utf-8") as f1,
+                    open(file2_decrypted, "r", encoding="utf-8") as f2,
+                ):
+                    content1 = f1.readlines()
+                    content2 = f2.readlines()
+
+                diff = list(
+                    difflib.unified_diff(
+                        content1,
+                        content2,
+                        lineterm="",
+                        fromfile="File1",
+                        tofile="File2",
+                    )
+                )
+            elif os.path.isdir(file1) and os.path.isdir(file2):
+                os.makedirs(file1_decrypted, exist_ok=True)
+                os.makedirs(file2_decrypted, exist_ok=True)
+
+                file1_files = {
+                    file.name: file
+                    for file in Path(file1).iterdir()
+                    if file.is_file() and file.suffix == ".enc"
+                }
+                file2_files = {
+                    file.name: file
+                    for file in Path(file2).iterdir()
+                    if file.is_file() and file.suffix == ".enc"
+                }
+
+                diff = []
+                for filename, file1_path in file1_files.items():
+                    file1_dec = os.path.join(
+                        file1_decrypted, filename.replace(".enc", "")
+                    )
+                    if filename in file2_files:
+                        file2_dec = os.path.join(
+                            file2_decrypted, filename.replace(".enc", "")
+                        )
+                        try:
+                            decrypt_file(str(file1_path), file1_dec, key1_bytes)
+                            decrypt_file(
+                                str(file2_files[filename]), file2_dec, key2_bytes
+                            )
+                        except FileDecryptionException as e:
+                            raise click.ClickException(
+                                f"Decryption failed for {filename}: {e}"
+                            )
+
+                        with (
+                            open(file1_dec, "r", encoding="utf-8") as f1,
+                            open(file2_dec, "r", encoding="utf-8") as f2,
+                        ):
+                            content1 = f1.readlines()
+                            content2 = f2.readlines()
+
+                        diff.extend(
+                            difflib.unified_diff(
+                                content1,
+                                content2,
+                                lineterm="",
+                                fromfile=f"File1/{filename}",
+                                tofile=f"File2/{filename}",
+                            )
+                        )
+                    else:
+                        diff.append(
+                            f"File present in File1 but missing in File2: {filename}"
+                        )
+
+                for filename in file2_files:
+                    if filename not in file1_files:
+                        diff.append(
+                            f"File present in File2 but missing in File1: {filename}"
+                        )
+            else:
+                raise click.UsageError(
+                    "Both inputs must either be files or directories."
+                )
+
+            # Output the comparison result
+            diff_text = "\n".join(diff)
+            if output:
+                with open(output, "w", encoding="utf-8") as outfile:
+                    outfile.write(diff_text)
+                click.echo(f"Comparison result saved to {output}")
+            else:
+                click.echo(
+                    diff_text if diff else "The files/directories are identical."
+                )
+    except click.ClickException as e:
+        click.echo(f"Error: {e}")
+    except Exception as e:
+        click.echo(f"Unexpected error during comparison: {e}")
+
+
 # Add all commands to the main group
 main.add_command(encrypt)
 main.add_command(decrypt)
 main.add_command(generate_key)
 main.add_command(generate_key_from_password)
 main.add_command(rotate_keys)
+main.add_command(compare)
 
 
 if __name__ == "__main__":
