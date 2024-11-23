@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 
@@ -22,3 +23,28 @@ def add_to_gitignore(directory: str, filename: str):
         with open(gitignore_path, "w", encoding="utf-8") as gitignore_file:
             gitignore_file.write(f"{filename}\n")
         print(f"Created {gitignore_path} and added '{filename}'")
+
+
+def calculate_required_space(input=None, directory=None):
+    """
+    Calculate the required disk space based on the size of the input file or directory.
+
+    :param input: Path to the file to calculate size.
+    :param directory: Path to the directory to calculate total size.
+    :return: Size in bytes.
+    """
+    if input and directory:
+        raise ValueError(
+            "Both `input` and `directory` cannot be specified at the same time."
+        )
+
+    if input:
+        return os.path.getsize(input)
+
+    if directory:
+        total_size = sum(
+            file.stat().st_size for file in Path(directory).rglob("*") if file.is_file()
+        )
+        return total_size
+
+    return 0
