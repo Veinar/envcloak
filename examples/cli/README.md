@@ -4,6 +4,8 @@ EnvCloak simplifies managing sensitive environment variables by encrypting and d
 
 ## Usage
 
+> **Dry Run:** With all required params **for each command** you can use `--dry-run` flag to check if command will pass or fail - without destroying your project 😅
+
 ### Key Generation
 
 #### 1. Generate a Key from a Password and Salt
@@ -53,6 +55,7 @@ envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```
 
 **Description:** Encrypts your `.env` file into `.env.enc`. The original file remains unchanged.
+> ⚠️  Has additional `--force` flag to allow overwriting of encrypted files.
 
 ### Decrypting Variables
 
@@ -61,6 +64,7 @@ envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 ```
 
 **Description:** Decrypts `.env.enc` back to `.env`. Ensure the `key-file` used matches the one from the encryption step.
+> ⚠️  Has additional `--force` flag to allow overwriting of decrypted files.
 
 ### Rotating Keys
 

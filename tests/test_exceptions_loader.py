@@ -46,11 +46,13 @@ def test_file_decryption_exception():
     """
     loader = EncryptedEnvLoader("tests/mock/variables.env.enc", "tests/mock/mykey.key")
 
-    with patch("pathlib.Path.exists", return_value=True), patch(
-        "envcloak.loader.decrypt_file",
-        side_effect=FileDecryptionException("Decryption error"),
-    ), patch(
-        "builtins.open", mock_open(read_data="fake_key")
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch(
+            "envcloak.loader.decrypt_file",
+            side_effect=FileDecryptionException("Decryption error"),
+        ),
+        patch("builtins.open", mock_open(read_data="fake_key")),
     ):  # Simulate the key file
         with pytest.raises(EncryptedEnvLoaderException) as exc_info:
             loader.load()
@@ -66,10 +68,11 @@ def test_unsupported_file_format_exception():
     Test that UnsupportedFileFormatException is raised for unsupported file formats.
     """
     loader = EncryptedEnvLoader("tests/mock/variables.unknown", "tests/mock/mykey.key")
-    with patch("pathlib.Path.exists", return_value=True), patch(
-        "envcloak.loader.decrypt_file"
-    ), patch("builtins.open", mock_open(read_data="{}")), patch.object(
-        Path, "suffix", ".unknown"
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("envcloak.loader.decrypt_file"),
+        patch("builtins.open", mock_open(read_data="{}")),
+        patch.object(Path, "suffix", ".unknown"),
     ):  # Mock the suffix attribute
         with pytest.raises(
             UnsupportedFileFormatException, match="File format detected: .unknown"
@@ -82,11 +85,13 @@ def test_unexpected_error():
     Test that EncryptedEnvLoaderException is raised for unexpected errors.
     """
     loader = EncryptedEnvLoader("test.enc", "test.key")
-    with patch("pathlib.Path.exists", return_value=True), patch(
-        "envcloak.loader.decrypt_file"
-    ), patch(
-        "envcloak.loader.EncryptedEnvLoader._parse_file",
-        side_effect=ValueError("Unexpected error"),
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("envcloak.loader.decrypt_file"),
+        patch(
+            "envcloak.loader.EncryptedEnvLoader._parse_file",
+            side_effect=ValueError("Unexpected error"),
+        ),
     ):
         with pytest.raises(
             EncryptedEnvLoaderException,
@@ -100,10 +105,11 @@ def test_parse_file_error():
     Test that EncryptedEnvLoaderException is raised when parsing fails.
     """
     loader = EncryptedEnvLoader("test.json", "test.key")
-    with patch("pathlib.Path.exists", return_value=True), patch(
-        "envcloak.loader.decrypt_file"
-    ), patch("envcloak.loader.open", mock_open(read_data="invalid json")), patch(
-        "json.load", side_effect=ValueError("JSON parsing error")
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("envcloak.loader.decrypt_file"),
+        patch("envcloak.loader.open", mock_open(read_data="invalid json")),
+        patch("json.load", side_effect=ValueError("JSON parsing error")),
     ):
         with pytest.raises(
             EncryptedEnvLoaderException, match="Failed to parse the decrypted file."
@@ -116,12 +122,11 @@ def test_parse_xml_error():
     Test that EncryptedEnvLoaderException is raised when XML parsing fails.
     """
     loader = EncryptedEnvLoader("tests/mock/variables.xml.enc", "tests/mock/mykey.key")
-    with patch("pathlib.Path.exists", return_value=True), patch(
-        "envcloak.loader.decrypt_file"
-    ), patch(
-        "envcloak.loader.safe_parse", side_effect=Exception("XML parsing error")
-    ), patch(
-        "builtins.open", mock_open(read_data="fake_key")
+    with (
+        patch("pathlib.Path.exists", return_value=True),
+        patch("envcloak.loader.decrypt_file"),
+        patch("envcloak.loader.safe_parse", side_effect=Exception("XML parsing error")),
+        patch("builtins.open", mock_open(read_data="fake_key")),
     ):  # Simulate the key file
         with pytest.raises(
             EncryptedEnvLoaderException, match="Failed to parse XML file."
