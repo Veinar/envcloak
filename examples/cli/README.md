@@ -55,6 +55,7 @@ envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```
 
 **Description:** Encrypts your `.env` file into `.env.enc`. The original file remains unchanged.
+> ⚠️  Has additional `--force` flag to allow overwriting of encrypted files.
 
 ### Decrypting Variables
 
@@ -63,6 +64,7 @@ envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 ```
 
 **Description:** Decrypts `.env.enc` back to `.env`. Ensure the `key-file` used matches the one from the encryption step.
+> ⚠️  Has additional `--force` flag to allow overwriting of decrypted files.
 
 ### Rotating Keys
 
