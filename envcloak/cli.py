@@ -511,9 +511,13 @@ def compare(file1, file2, key1, key2, output):
                     outfile.write(diff_text)
                 click.echo(f"Comparison result saved to {output}")
             else:
-                click.echo(
-                    diff_text if diff else "The files/directories are identical."
-                )
+                if diff:
+                    click.echo(
+                        style("⚠️  Warning: Files or directories differ.", fg="yellow")
+                    )
+                    click.echo(diff_text)
+                else:
+                    click.echo("The files/directories are identical.")
     except click.ClickException as e:
         click.echo(f"Error: {e}")
     except Exception as e:
