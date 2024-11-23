@@ -14,8 +14,6 @@ from envcloak.validation import (
     validate_salt,
 )
 from envcloak.exceptions import (
-    KeyFileNotFoundException,
-    DirectoryEmptyException,
     OutputFileExistsException,
     DiskSpaceException,
     InvalidSaltException,
@@ -30,7 +28,7 @@ def main():
     """
     EnvCloak: Securely manage encrypted environment variables.
     """
-    pass
+    # No unnecessary pass here
 
 
 @click.command()
@@ -60,25 +58,25 @@ def encrypt(input, directory, output, key_file, dry_run):
     Encrypt environment variables from a file or all files in a directory.
     """
     try:
+        # Always perform validation
         if not input and not directory:
             raise click.UsageError("You must provide either --input or --directory.")
         if input and directory:
             raise click.UsageError(
                 "You must provide either --input or --directory, not both."
             )
+        if input:
+            check_file_exists(input)
+            check_permissions(input)
+        if directory:
+            check_directory_exists(directory)
+            check_directory_not_empty(directory)
+        check_file_exists(key_file)
+        check_permissions(key_file)
+        check_output_not_exists(output)
+        check_disk_space(output, required_space=1024 * 1024)
 
         if dry_run:
-            # Dry-run validation
-            if input:
-                check_file_exists(input)
-                check_permissions(input)
-            if directory:
-                check_directory_exists(directory)
-                check_directory_not_empty(directory)
-            check_file_exists(key_file)
-            check_permissions(key_file)
-            check_output_not_exists(output)
-            check_disk_space(output, required_space=1024 * 1024)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -103,8 +101,6 @@ def encrypt(input, directory, output, key_file, dry_run):
                         f"File {file} encrypted -> {output_file} using key {key_file}"
                     )
     except (
-        KeyFileNotFoundException,
-        DirectoryEmptyException,
         OutputFileExistsException,
         DiskSpaceException,
         FileEncryptionException,
@@ -142,25 +138,25 @@ def decrypt(input, directory, output, key_file, dry_run):
     Decrypt environment variables from a file or all files in a directory.
     """
     try:
+        # Always perform validation
         if not input and not directory:
             raise click.UsageError("You must provide either --input or --directory.")
         if input and directory:
             raise click.UsageError(
                 "You must provide either --input or --directory, not both."
             )
+        if input:
+            check_file_exists(input)
+            check_permissions(input)
+        if directory:
+            check_directory_exists(directory)
+            check_directory_not_empty(directory)
+        check_file_exists(key_file)
+        check_permissions(key_file)
+        check_output_not_exists(output)
+        check_disk_space(output, required_space=1024 * 1024)
 
         if dry_run:
-            # Dry-run validation
-            if input:
-                check_file_exists(input)
-                check_permissions(input)
-            if directory:
-                check_directory_exists(directory)
-                check_directory_not_empty(directory)
-            check_file_exists(key_file)
-            check_permissions(key_file)
-            check_output_not_exists(output)
-            check_disk_space(output, required_space=1024 * 1024)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -185,8 +181,6 @@ def decrypt(input, directory, output, key_file, dry_run):
                         f"File {file} decrypted -> {output_file} using key {key_file}"
                     )
     except (
-        KeyFileNotFoundException,
-        DirectoryEmptyException,
         OutputFileExistsException,
         DiskSpaceException,
         FileDecryptionException,
@@ -209,9 +203,11 @@ def generate_key(output, no_gitignore, dry_run):
     Generate a new encryption key.
     """
     try:
+        # Always perform validation
+        check_output_not_exists(output)
+        check_disk_space(output, required_space=32)
+
         if dry_run:
-            check_output_not_exists(output)
-            check_disk_space(output, required_space=32)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -245,11 +241,13 @@ def generate_key_from_password(password, salt, output, no_gitignore, dry_run):
     Derive an encryption key from a password and salt.
     """
     try:
+        # Always perform validation
+        check_output_not_exists(output)
+        check_disk_space(output, required_space=32)
+        if salt:
+            validate_salt(salt)
+
         if dry_run:
-            check_output_not_exists(output)
-            check_disk_space(output, required_space=32)
-            if salt:
-                validate_salt(salt)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -281,15 +279,17 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run):
     Rotate encryption keys by re-encrypting a file with a new key.
     """
     try:
+        # Always perform validation
+        check_file_exists(input)
+        check_permissions(input)
+        check_file_exists(old_key_file)
+        check_permissions(old_key_file)
+        check_file_exists(new_key_file)
+        check_permissions(new_key_file)
+        check_output_not_exists(output)
+        check_disk_space(output, required_space=1024 * 1024)
+
         if dry_run:
-            check_file_exists(input)
-            check_permissions(input)
-            check_file_exists(old_key_file)
-            check_permissions(old_key_file)
-            check_file_exists(new_key_file)
-            check_permissions(new_key_file)
-            check_output_not_exists(output)
-            check_disk_space(output, required_space=1024 * 1024)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -305,7 +305,6 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run):
         os.remove(temp_decrypted)  # Clean up temporary file
         click.echo(f"Keys rotated for {input} -> {output}")
     except (
-        KeyFileNotFoundException,
         OutputFileExistsException,
         DiskSpaceException,
         FileDecryptionException,
