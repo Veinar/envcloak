@@ -117,11 +117,8 @@ envcloak compare --file1 ./tests/mock/variables.env.enc --file2 ./tests/mock/var
 +SOME_VARIABLE="yes, the files are different"
 ```
 
----
-
 **Working with Directories**: You can also compare two directories containing encrypted files (just pass dirs ad files.)
 
-##### **Command**:
 ```
 envcloak compare --file1 ./tests/mock/dir1 --file2 ./tests/mock/dir2 --key1 ./tests/mock/mykey.key
 ```
