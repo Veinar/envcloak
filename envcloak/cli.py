@@ -1,9 +1,11 @@
 import os
 from pathlib import Path
+import shutil
 import click
+from click import style
 from envcloak.encryptor import encrypt_file, decrypt_file
 from envcloak.generator import generate_key_file, generate_key_from_password_file
-from envcloak.utils import add_to_gitignore
+from envcloak.utils import add_to_gitignore, calculate_required_space
 from envcloak.validation import (
     check_file_exists,
     check_directory_exists,
@@ -53,7 +55,12 @@ def main():
 @click.option(
     "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
 )
-def encrypt(input, directory, output, key_file, dry_run):
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force overwrite of existing encrypted files or directories.",
+)
+def encrypt(input, directory, output, key_file, dry_run, force):
     """
     Encrypt environment variables from a file or all files in a directory.
     """
@@ -73,8 +80,25 @@ def encrypt(input, directory, output, key_file, dry_run):
             check_directory_not_empty(directory)
         check_file_exists(key_file)
         check_permissions(key_file)
-        check_output_not_exists(output)
-        check_disk_space(output, required_space=1024 * 1024)
+
+        # Handle overwrite with --force
+        if not force:
+            check_output_not_exists(output)
+        else:
+            if os.path.exists(output):
+                click.echo(
+                    style(
+                        f"⚠️  Warning: Overwriting existing file or directory {output} (--force used).",
+                        fg="yellow",
+                    )
+                )
+                if os.path.isdir(output):
+                    shutil.rmtree(output)  # Remove existing directory
+                else:
+                    os.remove(output)  # Remove existing file
+
+        required_space = calculate_required_space(input, directory)
+        check_disk_space(output, required_space)
 
         if dry_run:
             click.echo("Dry-run checks passed successfully.")
@@ -133,7 +157,12 @@ def encrypt(input, directory, output, key_file, dry_run):
 @click.option(
     "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
 )
-def decrypt(input, directory, output, key_file, dry_run):
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Force overwrite of existing decrypted files or directories.",
+)
+def decrypt(input, directory, output, key_file, dry_run, force):
     """
     Decrypt environment variables from a file or all files in a directory.
     """
@@ -153,8 +182,25 @@ def decrypt(input, directory, output, key_file, dry_run):
             check_directory_not_empty(directory)
         check_file_exists(key_file)
         check_permissions(key_file)
-        check_output_not_exists(output)
-        check_disk_space(output, required_space=1024 * 1024)
+
+        # Handle overwrite with --force
+        if not force:
+            check_output_not_exists(output)
+        else:
+            if os.path.exists(output):
+                click.echo(
+                    style(
+                        f"⚠️  Warning: Overwriting existing file or directory {output} (--force used).",
+                        fg="yellow",
+                    )
+                )
+                if os.path.isdir(output):
+                    shutil.rmtree(output)  # Remove existing directory
+                else:
+                    os.remove(output)  # Remove existing file
+
+        required_space = calculate_required_space(input, directory)
+        check_disk_space(output, required_space)
 
         if dry_run:
             click.echo("Dry-run checks passed successfully.")
