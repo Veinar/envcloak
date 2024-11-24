@@ -66,6 +66,24 @@ envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 **Description:** Decrypts `.env.enc` back to `.env`. Ensure the `key-file` used matches the one from the encryption step.
 > ⚠️  Has additional `--force` flag to allow overwriting of decrypted files.
 
+### Encrypting Directories
+
+```bash
+envcloak encrypt --directory yourDirectory --output yourDirectory.enc --key-file mykey.key
+```
+
+**Description:** Encrypts your `yourDirectory` file into `yourDirectory.enc`. The original file remains unchanged.
+> ⚠️  Has additional `--force` flag to allow overwriting of encrypted directories.
+
+### Decrypting Directories
+
+```bash
+envcloak decrypt --directory yourDirectory.enc --output yourDirectory --key-file mykey.key
+```
+
+**Description:** Decrypts `yourDirectory.enc` back to `yourDirectory`. Ensure the `key-file` used matches the one from the encryption step.
+> ⚠️  Has additional `--force` flag to allow overwriting of decrypted directories.
+
 ### Rotating Keys
 
 ```bash
