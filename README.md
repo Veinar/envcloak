@@ -60,6 +60,18 @@ envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```
 > **What it does:** Encrypts your `.env` file with a specified key, outputting a sparkling `.env.enc` file.
 
+### Encrypting Directories
+
+To encrypt all files in a directory, use the `--directory` flag instead of `--input`. The tool processes files in the specified directory **one by one**. You can also use the `--force` flag to overwrite existing encrypted files without confirmation.
+
+```bash
+envcloak encrypt --directory /path/to/directory --password mysecurepassword --force
+```
+> ** What it does:**
+- Iterates through all files in the specified directory (non-recursive).
+- Encrypts each file individually using the provided password.
+- Saves the encrypted files in the same directory, overwriting the originals if `--force` is specified.
+
 ### Decrypting Variables:
 
 ```bash
@@ -68,6 +80,17 @@ envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 > **What it does:** Decrypts the `.env.enc` file back to `.env` using the same key. Voilà!
 
 or you may want to use it ...
+
+### Decrypting Directories
+
+```bash
+envcloak decrypt --directory /path/to/directory --password mysecurepassword --force
+```
+> **What it does:**
+- Iterates through all files in the specified directory (non-recursive).
+- Decrypts each file individually using the provided password.
+- Saves the decrypted files in the same directory, overwriting the originals if `--force` is specified.
+
 
 ### 🐍 In Your Python Code
 
