@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import click
 
+
 def add_to_gitignore(directory: str, filename: str):
     """
     Add a filename to the .gitignore file in the specified directory.
@@ -49,7 +50,8 @@ def calculate_required_space(input=None, directory=None):
 
     return 0
 
-def debug_log(message,debug):
+
+def debug_log(message, debug):
     """
     Print message only if debug is true
 
@@ -59,10 +61,10 @@ def debug_log(message,debug):
     """
     if debug:
         print(message)
-    return
+
 
 def debug_option(func):
     """
     A reusable decorator for debug
     """
-    return click.option("--debug",is_flag=True,help="enable debug mode")(func)
+    return click.option("--debug", is_flag=True, help="enable debug mode")(func)
