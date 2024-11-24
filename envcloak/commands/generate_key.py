@@ -2,20 +2,19 @@ from pathlib import Path
 import click
 from envcloak.validation import check_output_not_exists, check_disk_space
 from envcloak.generator import generate_key_file
-from envcloak.utils import add_to_gitignore, debug_option, debug_log
+from envcloak.utils import add_to_gitignore, debug_log
+from envcloak.decorators.common_decorators import debug_option, dry_run_option
 from envcloak.exceptions import OutputFileExistsException, DiskSpaceException
 
 
 @click.command()
 @debug_option
+@dry_run_option
 @click.option(
     "--output", "-o", required=True, help="Path to save the generated encryption key."
 )
 @click.option(
     "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
 )
 def generate_key(output, no_gitignore, dry_run, debug):
     """

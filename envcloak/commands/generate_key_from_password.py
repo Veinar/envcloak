@@ -2,7 +2,8 @@ from pathlib import Path
 import click
 from envcloak.validation import check_output_not_exists, check_disk_space, validate_salt
 from envcloak.generator import generate_key_from_password_file
-from envcloak.utils import debug_log, debug_option, add_to_gitignore
+from envcloak.utils import debug_log, add_to_gitignore
+from envcloak.decorators.common_decorators import debug_option, dry_run_option
 from envcloak.exceptions import (
     OutputFileExistsException,
     DiskSpaceException,
@@ -12,6 +13,7 @@ from envcloak.exceptions import (
 
 @click.command()
 @debug_option
+@dry_run_option
 @click.option(
     "--password", "-p", required=True, help="Password to derive the encryption key."
 )
@@ -23,9 +25,6 @@ from envcloak.exceptions import (
 )
 @click.option(
     "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
 )
 def generate_key_from_password(password, salt, output, no_gitignore, dry_run, debug):
     """

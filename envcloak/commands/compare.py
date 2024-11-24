@@ -4,7 +4,8 @@ import difflib
 from pathlib import Path
 import click
 from click import style
-from envcloak.utils import debug_log, debug_option
+from envcloak.utils import debug_log
+from envcloak.decorators.common_decorators import debug_option
 from envcloak.validation import check_file_exists, check_directory_exists
 from envcloak.encryptor import decrypt_file
 from envcloak.exceptions import FileDecryptionException

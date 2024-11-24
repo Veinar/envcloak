@@ -1,6 +1,7 @@
 import os
 import click
-from envcloak.utils import debug_log, debug_option
+from envcloak.utils import debug_log
+from envcloak.decorators.common_decorators import debug_option, dry_run_option
 from envcloak.validation import (
     check_file_exists,
     check_permissions,
@@ -18,6 +19,7 @@ from envcloak.exceptions import (
 
 @click.command()
 @debug_option
+@dry_run_option
 @click.option(
     "--input", "-i", required=True, help="Path to the encrypted file to re-encrypt."
 )
@@ -28,9 +30,6 @@ from envcloak.exceptions import (
     "--new-key-file", "-nk", required=True, help="Path to the new encryption key."
 )
 @click.option("--output", "-o", required=True, help="Path to the re-encrypted file.")
-@click.option(
-    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
-)
 def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug):
     """
     Rotate encryption keys by re-encrypting a file with a new key.

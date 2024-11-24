@@ -3,7 +3,12 @@ import shutil
 from pathlib import Path
 import click
 from click import style
-from envcloak.utils import debug_log, debug_option, calculate_required_space
+from envcloak.utils import debug_log, calculate_required_space
+from envcloak.decorators.common_decorators import (
+    debug_option,
+    force_option,
+    dry_run_option,
+)
 from envcloak.validation import (
     check_file_exists,
     check_directory_exists,
@@ -22,6 +27,8 @@ from envcloak.exceptions import (
 
 @click.command()
 @debug_option
+@dry_run_option
+@force_option
 @click.option(
     "--input", "-i", required=False, help="Path to the input file (e.g., .env)."
 )
@@ -39,14 +46,6 @@ from envcloak.exceptions import (
 )
 @click.option(
     "--key-file", "-k", required=True, help="Path to the encryption key file."
-)
-@click.option(
-    "--dry-run", is_flag=True, help="Perform a dry run without making any changes."
-)
-@click.option(
-    "--force",
-    is_flag=True,
-    help="Force overwrite of existing encrypted files or directories.",
 )
 def encrypt(input, directory, output, key_file, dry_run, force, debug):
     """
