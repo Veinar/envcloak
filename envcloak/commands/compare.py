@@ -1,11 +1,11 @@
 import os
 import tempfile
 import difflib
+from pathlib import Path
 import click
 from click import style
-from pathlib import Path
 from envcloak.utils import debug_log, debug_option
-from envcloak.validation import check_file_exists
+from envcloak.validation import check_file_exists, check_directory_exists
 from envcloak.encryptor import decrypt_file
 from envcloak.exceptions import FileDecryptionException
 
@@ -44,23 +44,34 @@ def compare(file1, file2, key1, key2, output, debug):
     Compare two encrypted environment files or directories.
     """
     try:
-        # Validate existence of files/directories and keys
+        # Validate existence of files/directories and keys using helper functions
         debug_log("Debug: Validating existence of input files and keys.", debug)
-        if not os.path.exists(file1):
-            raise click.ClickException(f"File or directory not found: {file1}")
-        if not os.path.exists(file2):
-            raise click.ClickException(f"File or directory not found: {file2}")
-        if not os.path.exists(key1):
-            raise click.ClickException(f"Key file not found: {key1}")
+        try:
+            if Path(file1).is_file():
+                check_file_exists(file1)
+            elif Path(file1).is_dir():
+                check_directory_exists(file1)
+            else:
+                raise click.ClickException(f"Invalid input path: {file1}")
 
-        key2 = key2 or key1
+            if Path(file2).is_file():
+                check_file_exists(file2)
+            elif Path(file2).is_dir():
+                check_directory_exists(file2)
+            else:
+                raise click.ClickException(f"Invalid input path: {file2}")
+
+            check_file_exists(key1)
+            key2 = key2 or key1
+            check_file_exists(key2)
+        except FileNotFoundError as e:
+            raise click.ClickException(str(e))
+
         if key1 == key2:
             debug_log(
-                "Debug: Key1 and Key2 are identical or Key2 not specified. Using Key1 for both files.",
+                "Debug: Keys are identical or Key2 not specified. Using Key1 for both files.",
                 debug,
             )
-        if not os.path.exists(key2):
-            raise click.ClickException(f"Key file not found: {key2}")
 
         # Read decryption keys
         debug_log(f"Debug: Reading encryption keys from {key1} and {key2}.", debug)
@@ -76,7 +87,7 @@ def compare(file1, file2, key1, key2, output, debug):
             debug_log(
                 "Debug: Preparing to decrypt and compare files or directories.", debug
             )
-            if os.path.isfile(file1) and os.path.isfile(file2):
+            if Path(file1).is_file() and Path(file2).is_file():
                 debug_log("Debug: Both inputs are files. Decrypting files.", debug)
                 try:
                     decrypt_file(file1, file1_decrypted, key1_bytes)
@@ -100,7 +111,7 @@ def compare(file1, file2, key1, key2, output, debug):
                         tofile="File2",
                     )
                 )
-            elif os.path.isdir(file1) and os.path.isdir(file2):
+            elif Path(file1).is_dir() and Path(file2).is_dir():
                 debug_log(
                     "Debug: Both inputs are directories. Decrypting directory contents.",
                     debug,
