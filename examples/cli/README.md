@@ -1,3 +1,4 @@
+
 # EnvCloak: CLI examples
 
 EnvCloak simplifies managing sensitive environment variables by encrypting and decrypting .env files securely. It supports generating encryption keys, encrypting/decrypting files, and rotating keys efficiently. Designed for developers and CI/CD pipelines, EnvCloak is the security superhero your project needs! 🛡️
@@ -15,7 +16,7 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" \
 --salt "e3a1c8b0d4f6e2c7a5b9d6f0cr2ad1a2" --output secretkey.key
 ```
 
-**Description:** Derives a key from a password and a salt. The salt ensures uniqueness, preventing duplicate keys from identical passwords. 
+**Description:** Derives a key from a password and a salt. The salt ensures uniqueness, preventing duplicate keys from identical passwords.
 **By default:**
 * If a `.gitignore` exists, it appends the key file name to it.
 * If `.gitignore` doesn't exist, it creates one and includes the key file name.
@@ -28,7 +29,7 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" \
 envcloak generate-key-from-password --password "YourTopSecretPassword" --output secretkey.key
 ```
 
-**Description:** Derives a key from a password and a randomly generated salt. The salt is stored for future use. 
+**Description:** Derives a key from a password and a randomly generated salt. The salt is stored for future use.
 **By default:**
 * If a `.gitignore` exists, it appends the key file name to it.
 * If `.gitignore` doesn't exist, it creates one and includes the key file name.
@@ -41,7 +42,7 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" --output 
 envcloak generate-key --output secretkey.key
 ```
 
-**Description:** Creates a random encryption key. 
+**Description:** Creates a random encryption key.
 **By default:**
 * If a `.gitignore` exists, it appends the key file name to it.
 * If `.gitignore` doesn't exist, it creates one and includes the key file name.
@@ -71,8 +72,7 @@ envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 ```bash
 envcloak encrypt --directory yourDirectory --output yourDirectory.enc --key-file mykey.key
 ```
-
-**Description:** Encrypts your `yourDirectory` file into `yourDirectory.enc`. The original file remains unchanged.
+**Description:** Encrypts your  files of the `yourDirectory` directory,  processing files one by one and creates encrypted files in output directory (`yourDirectory.enc`). The original files and directory remain unchanged.
 > ⚠️  Has additional `--force` flag to allow overwriting of encrypted directories.
 
 ### Decrypting Directories
@@ -80,8 +80,7 @@ envcloak encrypt --directory yourDirectory --output yourDirectory.enc --key-file
 ```bash
 envcloak decrypt --directory yourDirectory.enc --output yourDirectory --key-file mykey.key
 ```
-
-**Description:** Decrypts `yourDirectory.enc` back to `yourDirectory`. Ensure the `key-file` used matches the one from the encryption step.
+**Description:** Decrypts  your  files of the `yourDirectory.enc`, processing files one by one and recreating the original files in the specified output directory (`yourDirectory`). The original encrypted files and directory remain unchanged. Ensure the `key-file` used matches the one from the encryption step.
 > ⚠️  Has additional `--force` flag to allow overwriting of decrypted directories.
 
 ### Rotating Keys
