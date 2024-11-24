@@ -338,9 +338,7 @@ def generate_key(output, no_gitignore, dry_run, debug):
         check_disk_space(output, required_space=32)
 
         if dry_run:
-            debug_log(
-                "Debug: Dry-run flag set. Skipping actual key generation.", debug
-            )
+            debug_log("Debug: Dry-run flag set. Skipping actual key generation.", debug)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -394,9 +392,7 @@ def generate_key_from_password(password, salt, output, no_gitignore, dry_run, de
             validate_salt(salt)
 
         if dry_run:
-            debug_log(
-                "Debug: Dry-run flag set. Skipping actual key derivation.", debug
-            )
+            debug_log("Debug: Dry-run flag set. Skipping actual key derivation.", debug)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -509,12 +505,14 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug):
     required=False,
     help="Path to save the comparison result as a file.",
 )
-def compare(file1, file2, key1, key2, output):
+@debug_option
+def compare(file1, file2, key1, key2, output, debug):
     """
     Compare two encrypted environment files or directories.
     """
     try:
         # Validate existence of files/directories and keys
+        debug_log("Debug: Validating existence of input files and keys.", debug)
         if not os.path.exists(file1):
             raise click.ClickException(f"File or directory not found: {file1}")
         if not os.path.exists(file2):
@@ -523,10 +521,15 @@ def compare(file1, file2, key1, key2, output):
             raise click.ClickException(f"Key file not found: {key1}")
 
         key2 = key2 or key1
+        if key1 == key2:
+            debug_log(
+                "Debug: Key1 and Key2 are identical or Key2 not specified. Using Key1 for both files.", debug
+            )
         if not os.path.exists(key2):
             raise click.ClickException(f"Key file not found: {key2}")
 
         # Read decryption keys
+        debug_log(f"Debug: Reading encryption keys from {key1} and {key2}.", debug)
         with open(key1, "rb") as kf1, open(key2, "rb") as kf2:
             key1_bytes = kf1.read()
             key2_bytes = kf2.read()
@@ -536,7 +539,11 @@ def compare(file1, file2, key1, key2, output):
             file1_decrypted = os.path.join(temp_dir, "file1_decrypted")
             file2_decrypted = os.path.join(temp_dir, "file2_decrypted")
 
+            debug_log(
+                "Debug: Preparing to decrypt and compare files or directories.", debug
+            )
             if os.path.isfile(file1) and os.path.isfile(file2):
+                debug_log("Debug: Both inputs are files. Decrypting files.", debug)
                 try:
                     decrypt_file(file1, file1_decrypted, key1_bytes)
                     decrypt_file(file2, file2_decrypted, key2_bytes)
@@ -549,7 +556,7 @@ def compare(file1, file2, key1, key2, output):
                 ):
                     content1 = f1.readlines()
                     content2 = f2.readlines()
-
+                debug_log("Debug: Comparing file contents using difflib.", debug)
                 diff = list(
                     difflib.unified_diff(
                         content1,
@@ -560,6 +567,10 @@ def compare(file1, file2, key1, key2, output):
                     )
                 )
             elif os.path.isdir(file1) and os.path.isdir(file2):
+                debug_log(
+                    "Debug: Both inputs are directories. Decrypting directory contents.",
+                    debug,
+                )
                 os.makedirs(file1_decrypted, exist_ok=True)
                 os.makedirs(file2_decrypted, exist_ok=True)
 
@@ -610,12 +621,20 @@ def compare(file1, file2, key1, key2, output):
                             )
                         )
                     else:
+                        debug_log(
+                            f"Debug: File {filename} exists in File1 but not in File2.",
+                            debug,
+                        )
                         diff.append(
                             f"File present in File1 but missing in File2: {filename}"
                         )
 
                 for filename in file2_files:
                     if filename not in file1_files:
+                        debug_log(
+                            f"Debug: File {filename} exists in File2 but not in File1.",
+                            debug,
+                        )
                         diff.append(
                             f"File present in File2 but missing in File1: {filename}"
                         )
