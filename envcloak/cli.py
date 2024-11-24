@@ -72,9 +72,9 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug):
     """
     try:
         # debug mode
-        debug_log(f"Debug mode is enabled", debug)
+        debug_log("Debug mode is enabled", debug)
 
-        debug_log(f"Debug: Validating input and directory parameters.", debug)
+        debug_log("Debug: Validating input and directory parameters.", debug)
         # Always perform validation
         if not input and not directory:
             raise click.UsageError("You must provide either --input or --directory.")
@@ -95,7 +95,7 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug):
         check_permissions(key_file)
 
         # Handle overwrite with --force
-        debug_log(f"Debug: Handling overwrite logic with force flag.", debug)
+        debug_log("Debug: Handling overwrite logic with force flag.", debug)
         if not force:
             check_output_not_exists(output)
         else:
@@ -126,7 +126,7 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug):
 
         if dry_run:
             debug_log(
-                f"Debug: Dry-run flag is set. Skipping actual encryption process.",
+                "Debug: Dry-run flag is set. Skipping actual encryption process.",
                 debug,
             )
             click.echo("Dry-run checks passed successfully.")
@@ -209,10 +209,10 @@ def decrypt(input, directory, output, key_file, dry_run, force, debug):
     Decrypt environment variables from a file or all files in a directory.
     """
     try:
-        debug_log(f"Debug mode is enabled", debug)
+        debug_log("Debug mode is enabled", debug)
 
         # Always perform validation
-        debug_log(f"Debug: Validating input and directory parameters.", debug)
+        debug_log("Debug: Validating input and directory parameters.", debug)
         if not input and not directory:
             raise click.UsageError("You must provide either --input or --directory.")
         if input and directory:
@@ -232,7 +232,7 @@ def decrypt(input, directory, output, key_file, dry_run, force, debug):
         check_permissions(key_file)
 
         # Handle overwrite with --force
-        debug_log(f"Debug: Handling overwrite logic with force flag.", debug)
+        debug_log("Debug: Handling overwrite logic with force flag.", debug)
         if not force:
             check_output_not_exists(output)
         else:
@@ -262,7 +262,7 @@ def decrypt(input, directory, output, key_file, dry_run, force, debug):
         check_disk_space(output, required_space)
 
         if dry_run:
-            debug_log(f"Debug: Dry-run flag set. Skipping actual decryption.", debug)
+            debug_log("Debug: Dry-run flag set. Skipping actual decryption.", debug)
             click.echo("Dry-run checks passed successfully.")
             return
 
@@ -323,7 +323,7 @@ def generate_key(output, no_gitignore, dry_run, debug):
     Generate a new encryption key.
     """
     try:
-        debug_log(f"Debug mode is enabled", debug)
+        debug_log("Debug mode is enabled", debug)
 
         # Always perform validation
         debug_log(f"Debug: Validating output path {output}.", debug)
@@ -337,7 +337,7 @@ def generate_key(output, no_gitignore, dry_run, debug):
 
         if dry_run:
             debug_log(
-                f"Debug: Dry-run flag set. Skipping actual key generation.", debug
+                "Debug: Dry-run flag set. Skipping actual key generation.", debug
             )
             click.echo("Dry-run checks passed successfully.")
             return
@@ -378,7 +378,7 @@ def generate_key_from_password(password, salt, output, no_gitignore, dry_run, de
     Derive an encryption key from a password and salt.
     """
     try:
-        debug_log(f"Debug mode is enabled", debug)
+        debug_log("Debug mode is enabled", debug)
         # Always perform validation
         debug_log(f"Debug: Validating output path {output}.", debug)
         check_output_not_exists(output)
@@ -393,7 +393,7 @@ def generate_key_from_password(password, salt, output, no_gitignore, dry_run, de
 
         if dry_run:
             debug_log(
-                f"Debug: Dry-run flag set. Skipping actual key derivation.", debug
+                "Debug: Dry-run flag set. Skipping actual key derivation.", debug
             )
             click.echo("Dry-run checks passed successfully.")
             return
@@ -432,7 +432,7 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug):
     Rotate encryption keys by re-encrypting a file with a new key.
     """
     try:
-        debug_log(f"Debug mode is enabled", debug)
+        debug_log("Debug mode is enabled", debug)
         # Always perform validation
         check_file_exists(input)
         check_permissions(input)

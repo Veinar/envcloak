@@ -61,7 +61,6 @@ def debug_log(message, debug):
     """
     if debug:
         print(message)
-    return
 
 
 def debug_option(func):
