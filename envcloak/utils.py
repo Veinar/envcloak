@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-
+import click
 
 def add_to_gitignore(directory: str, filename: str):
     """
@@ -48,3 +48,21 @@ def calculate_required_space(input=None, directory=None):
         return total_size
 
     return 0
+
+def debug_log(message,debug):
+    """
+    Print message only if debug is true
+
+    :param message: message to print
+    :param debug: flag to turn debug mode on
+    :return: None
+    """
+    if debug:
+        print(message)
+    return
+
+def debug_option(func):
+    """
+    A reusable decorator for debug
+    """
+    return click.option("--debug",is_flag=True,help="enable debug mode")(func)
