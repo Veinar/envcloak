@@ -523,7 +523,8 @@ def compare(file1, file2, key1, key2, output, debug):
         key2 = key2 or key1
         if key1 == key2:
             debug_log(
-                "Debug: Key1 and Key2 are identical or Key2 not specified. Using Key1 for both files.", debug
+                "Debug: Key1 and Key2 are identical or Key2 not specified. Using Key1 for both files.",
+                debug,
             )
         if not os.path.exists(key2):
             raise click.ClickException(f"Key file not found: {key2}")
