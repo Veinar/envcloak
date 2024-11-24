@@ -13,7 +13,6 @@ from envcloak.exceptions import (
     FileEncryptionException,
     FileDecryptionException,
 )
-from envcloak.utils import debug_log
 from envcloak.constants import NONCE_SIZE, KEY_SIZE, SALT_SIZE
 
 
