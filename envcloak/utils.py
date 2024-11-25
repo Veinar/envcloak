@@ -48,3 +48,15 @@ def calculate_required_space(input=None, directory=None):
         return total_size
 
     return 0
+
+
+def debug_log(message, debug):
+    """
+    Print message only if debug is true
+
+    :param message: message to print
+    :param debug: flag to turn debug mode on
+    :return: None
+    """
+    if debug:
+        print(message)

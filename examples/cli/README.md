@@ -1,3 +1,4 @@
+
 # EnvCloak: CLI examples
 
 EnvCloak simplifies managing sensitive environment variables by encrypting and decrypting .env files securely. It supports generating encryption keys, encrypting/decrypting files, and rotating keys efficiently. Designed for developers and CI/CD pipelines, EnvCloak is the security superhero your project needs! 🛡️
@@ -15,7 +16,7 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" \
 --salt "e3a1c8b0d4f6e2c7a5b9d6f0cr2ad1a2" --output secretkey.key
 ```
 
-**Description:** Derives a key from a password and a salt. The salt ensures uniqueness, preventing duplicate keys from identical passwords. 
+**Description:** Derives a key from a password and a salt. The salt ensures uniqueness, preventing duplicate keys from identical passwords.
 **By default:**
 * If a `.gitignore` exists, it appends the key file name to it.
 * If `.gitignore` doesn't exist, it creates one and includes the key file name.
@@ -28,7 +29,7 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" \
 envcloak generate-key-from-password --password "YourTopSecretPassword" --output secretkey.key
 ```
 
-**Description:** Derives a key from a password and a randomly generated salt. The salt is stored for future use. 
+**Description:** Derives a key from a password and a randomly generated salt. The salt is stored for future use.
 **By default:**
 * If a `.gitignore` exists, it appends the key file name to it.
 * If `.gitignore` doesn't exist, it creates one and includes the key file name.
@@ -41,7 +42,7 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" --output 
 envcloak generate-key --output secretkey.key
 ```
 
-**Description:** Creates a random encryption key. 
+**Description:** Creates a random encryption key.
 **By default:**
 * If a `.gitignore` exists, it appends the key file name to it.
 * If `.gitignore` doesn't exist, it creates one and includes the key file name.
@@ -66,6 +67,22 @@ envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 **Description:** Decrypts `.env.enc` back to `.env`. Ensure the `key-file` used matches the one from the encryption step.
 > ⚠️  Has additional `--force` flag to allow overwriting of decrypted files.
 
+### Encrypting Directories
+
+```bash
+envcloak encrypt --directory yourDirectory --output yourDirectory.enc --key-file mykey.key
+```
+**Description:** Encrypts your  files of the `yourDirectory` directory,  processing files one by one and creates encrypted files in output directory (`yourDirectory.enc`). The original files and directory remain unchanged.
+> ⚠️  Has additional `--force` flag to allow overwriting of encrypted directories.
+
+### Decrypting Directories
+
+```bash
+envcloak decrypt --directory yourDirectory.enc --output yourDirectory --key-file mykey.key
+```
+**Description:** Decrypts  your  files of the `yourDirectory.enc`, processing files one by one and recreating the original files in the specified output directory (`yourDirectory`). The original encrypted files and directory remain unchanged. Ensure the `key-file` used matches the one from the encryption step.
+> ⚠️  Has additional `--force` flag to allow overwriting of decrypted directories.
+
 ### Rotating Keys
 
 ```bash
@@ -74,6 +91,54 @@ envcloak rotate-keys --input .env.enc --old-key-file oldkey.key \
 ```
 
 **Description:** Re-encrypts an encrypted file with a new key, ensuring minimal disruption when rotating encryption keys.
+
+### Comparing Encrypted Files or Directories
+
+> Use `--key2` if a different key is needed for `file2` or the second directory. ⚠️
+
+> Use `--output` if you need to save diff report to file 👌
+
+```
+envcloak compare --file1 ./tests/mock/variables.env.enc --file2 ./tests/mock/variables_modified.env.enc --key1 ./tests/mock/mykey.key
+```
+
+**Description:** Compares two encrypted environment files or directories by decrypting them using the provided key(s). Displays the differences between the contents, highlighting added, modified, or removed lines.
+
+
+#### **How It Works:**
+1. **Decryption**: Each file or directory is decrypted using the corresponding key.
+2. **Diff Comparison**: The contents of the decrypted files are compared line by line.
+3. **Result**:
+   - If the files or directories are identical, a message is displayed: `The files/directories are identical.`
+   - If there are differences, a unified diff is displayed showing changes.
+4. **Temporary decrypted files are being deleted.**
+
+##### **Example Output**:
+```
+--- File1
++++ File2
+@@ -25,4 +25,7 @@
+ 
+
+ # Miscellaneous secrets
+
+ SECRET_KEY_BASE=example_secret_key_base
+
+-SESSION_SECRET=example_session_secret
++SESSION_SECRET=example_session_secret
+
++
+
++# Test for comparison diff
+
++SOME_VARIABLE="yes, the files are different"
+```
+
+**Working with Directories**: You can also compare two directories containing encrypted files (just pass dirs ad files.)
+
+```
+envcloak compare --file1 ./tests/mock/dir1 --file2 ./tests/mock/dir2 --key1 ./tests/mock/mykey.key
+```
 
 ## Use Cases
 
