@@ -110,3 +110,23 @@ class FileEncryptionException(CryptographyException):
     """Raised when file encryption fails."""
 
     default_message = "Failed to encrypt the file."
+
+
+#### Integrity exceptions
+class IntegrityCheckFailedException(CryptographyException):
+    """Raised when the integrity check of a file fails."""
+
+    default_message = (
+        "Integrity check failed! The file may have been tampered with or corrupted."
+    )
+
+    def __init__(self, message=None, details=None):
+        self.message = message or self.default_message
+        self.details = details
+        super().__init__(self.message)
+
+    def __str__(self):
+        error_message = f"Error: {self.message}"
+        if self.details:
+            error_message += f"\nDetails: {self.details}"
+        return error_message

@@ -39,8 +39,14 @@ from envcloak.exceptions import FileDecryptionException
     required=False,
     help="Path to save the comparison result as a file.",
 )
+@click.option(
+    "--skip-sha-validation",
+    is_flag=True,
+    default=False,
+    help="Skip SHA-256 integrity validation checks during decryption.",
+)
 @debug_option
-def compare(file1, file2, key1, key2, output, debug):
+def compare(file1, file2, key1, key2, output, skip_sha_validation, debug):
     """
     Compare two encrypted environment files or directories.
     """
@@ -91,8 +97,18 @@ def compare(file1, file2, key1, key2, output, debug):
             if Path(file1).is_file() and Path(file2).is_file():
                 debug_log("Debug: Both inputs are files. Decrypting files.", debug)
                 try:
-                    decrypt_file(file1, file1_decrypted, key1_bytes)
-                    decrypt_file(file2, file2_decrypted, key2_bytes)
+                    decrypt_file(
+                        file1,
+                        file1_decrypted,
+                        key1_bytes,
+                        validate_integrity=not skip_sha_validation,
+                    )
+                    decrypt_file(
+                        file2,
+                        file2_decrypted,
+                        key2_bytes,
+                        validate_integrity=not skip_sha_validation,
+                    )
                 except FileDecryptionException as e:
                     raise click.ClickException(f"Decryption failed: {e}")
 
@@ -141,9 +157,17 @@ def compare(file1, file2, key1, key2, output, debug):
                             file2_decrypted, filename.replace(".enc", "")
                         )
                         try:
-                            decrypt_file(str(file1_path), file1_dec, key1_bytes)
                             decrypt_file(
-                                str(file2_files[filename]), file2_dec, key2_bytes
+                                str(file1_path),
+                                file1_dec,
+                                key1_bytes,
+                                validate_integrity=not skip_sha_validation,
+                            )
+                            decrypt_file(
+                                str(file2_files[filename]),
+                                file2_dec,
+                                key2_bytes,
+                                validate_integrity=not skip_sha_validation,
                             )
                         except FileDecryptionException as e:
                             raise click.ClickException(

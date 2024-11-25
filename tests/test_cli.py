@@ -10,17 +10,6 @@ from unittest.mock import patch
 from envcloak.cli import main
 from envcloak.generator import derive_key
 
-# Updated import list for command modularization
-# from envcloak.commands.encrypt import encrypt_file
-# from envcloak.commands.decrypt import decrypt_file
-# from envcloak.commands.generate_key import generate_key_file
-# from envcloak.commands.generate_key_from_password import generate_key_from_password_file
-# from envcloak.commands.rotate_keys import (
-#    encrypt_file as rotate_encrypt_file,
-#    decrypt_file as rotate_decrypt_file,
-# )
-# from envcloak.utils import add_to_gitignore
-
 
 @pytest.fixture
 def isolated_mock_files():
@@ -125,8 +114,11 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
     # Use a unique temporary output file
     temp_decrypted_file = decrypted_file.with_name("variables.temp.decrypted")
 
-    def mock_decrypt(input_path, output_path, key):
+    def mock_decrypt(input_path, output_path, key, validate_integrity=True):
         assert os.path.exists(input_path), "Encrypted file does not exist"
+        assert isinstance(
+            validate_integrity, bool
+        ), "validate_integrity must be a boolean"
         with open(output_path, "w") as f:
             f.write("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
 
@@ -142,12 +134,16 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
             str(temp_decrypted_file),
             "--key-file",
             str(key_file),
+            "--skip-sha-validation",
         ],
     )
 
     assert "File" in result.output
     mock_decrypt_file.assert_called_once_with(
-        str(encrypted_file), str(temp_decrypted_file), key_file.read_bytes()
+        str(encrypted_file),
+        str(temp_decrypted_file),
+        key_file.read_bytes(),
+        validate_integrity=False,
     )
 
     # Clean up: Remove temp decrypted file
@@ -423,6 +419,7 @@ def test_decrypt_with_mixed_input_and_directory(runner, mock_files):
             output_path,
             "--key-file",
             str(key_file),
+            "--skip-sha-validation",
         ],
     )
 
@@ -485,7 +482,7 @@ def test_decrypt_with_force(mock_decrypt_file, runner, mock_files):
     # Create a mock existing decrypted file
     decrypted_file.write_text("existing content")
 
-    def mock_decrypt(input_path, output_path, key):
+    def mock_decrypt(input_path, output_path, key, validate_integrity=True):
         assert os.path.exists(input_path), "Encrypted file does not exist"
         with open(output_path, "w") as f:
             f.write("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
@@ -504,12 +501,16 @@ def test_decrypt_with_force(mock_decrypt_file, runner, mock_files):
             "--key-file",
             str(key_file),
             "--force",
+            "--skip-sha-validation",
         ],
     )
 
     assert "Overwriting existing file" in result.output
     mock_decrypt_file.assert_called_once_with(
-        str(encrypted_file), str(decrypted_file), key_file.read_bytes()
+        str(encrypted_file),
+        str(decrypted_file),
+        key_file.read_bytes(),
+        validate_integrity=False,  # Ensure the validate_integrity flag matches
     )
 
     # Ensure the file was overwritten
@@ -565,6 +566,7 @@ def test_decrypt_without_force_conflict(runner, mock_files):
             str(decrypted_file),
             "--key-file",
             str(key_file),
+            "--skip-sha-validation",
         ],
     )
 
@@ -641,7 +643,7 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
     output_directory.mkdir()
     (output_directory / "file1.env").write_text("existing decrypted content")
 
-    def mock_decrypt(input_path, output_path, key):
+    def mock_decrypt(input_path, output_path, key, validate_integrity=True):
         with open(output_path, "w") as f:
             f.write("decrypted content")
 
@@ -659,6 +661,7 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
             "--key-file",
             str(key_file),
             "--force",
+            "--skip-sha-validation",
         ],
     )
 
@@ -667,11 +670,13 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
         str(directory / "file1.env.enc"),
         str(output_directory / "file1.env"),
         key_file.read_bytes(),
+        validate_integrity=False,  # Ensure the validate_integrity flag matches
     )
     mock_decrypt_file.assert_any_call(
         str(directory / "file2.env.enc"),
         str(output_directory / "file2.env"),
         key_file.read_bytes(),
+        validate_integrity=False,  # Ensure the validate_integrity flag matches
     )
 
 

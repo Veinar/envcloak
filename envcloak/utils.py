@@ -1,4 +1,5 @@
 import os
+import hashlib
 from pathlib import Path
 
 
@@ -60,3 +61,13 @@ def debug_log(message, debug):
     """
     if debug:
         print(message)
+
+
+def compute_sha256(data: str) -> str:
+    """
+    Compute SHA-256 hash of the given data.
+
+    :param data: Input data as a string.
+    :return: SHA-256 hash as a hex string.
+    """
+    return hashlib.sha3_256(data.encode()).hexdigest()
