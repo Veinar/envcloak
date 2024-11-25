@@ -46,7 +46,8 @@ dev = [
     "pytest>=6.0",
     "bandit>=1.7.10",
     "pylint>=3.3.1",
-    "black>=22.0"
+    "black>=22.0",
+    "hypothesis>=6.0"
 ]
 
 [project.urls]
