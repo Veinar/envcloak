@@ -12,6 +12,7 @@
 ![Code style](https://img.shields.io/badge/code%20style-black-black)
 ![CI/CD Pipeline](https://github.com/Veinar/envcloak/actions/workflows/test.yaml/badge.svg)
 ![Build Pipeline](https://github.com/Veinar/envcloak/actions/workflows/build.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/Veinar/envcloak/graph/badge.svg?token=CJG1H1VUEX)](https://codecov.io/gh/Veinar/envcloak)
 
 ![PyPI - Status](https://img.shields.io/pypi/status/envcloak?label=pypi%20status)
 ![PyPI - Version](https://img.shields.io/pypi/v/envcloak)
