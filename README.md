@@ -13,6 +13,7 @@
 ![CI/CD Pipeline](https://github.com/Veinar/envcloak/actions/workflows/test.yaml/badge.svg)
 ![Build Pipeline](https://github.com/Veinar/envcloak/actions/workflows/build.yaml/badge.svg)
 [![codecov](https://codecov.io/gh/Veinar/envcloak/graph/badge.svg?token=CJG1H1VUEX)](https://codecov.io/gh/Veinar/envcloak)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9736/badge)](https://www.bestpractices.dev/projects/9736)
 
 ![PyPI - Status](https://img.shields.io/pypi/status/envcloak?label=pypi%20status)
 ![PyPI - Version](https://img.shields.io/pypi/v/envcloak)
