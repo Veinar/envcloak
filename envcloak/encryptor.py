@@ -5,7 +5,8 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
-from colorama import Fore, Style
+import click
+from click import style
 from envcloak.exceptions import (
     InvalidSaltException,
     InvalidKeyException,
@@ -177,10 +178,11 @@ def decrypt_file(
                         details="Encrypted file integrity check failed! The file may have been tampered with or corrupted."
                     )
             else:
-                print(
-                    Fore.YELLOW
-                    + "⚠️  Warning: file_sha missing. Encrypted file integrity check skipped."
-                    + Style.RESET_ALL
+                click.echo(
+                    style(
+                        "⚠️  Warning: file_sha missing. Encrypted file integrity check skipped.",
+                        fg="yellow",
+                    )
                 )
 
         # Decrypt the plaintext
@@ -199,10 +201,11 @@ def decrypt_file(
                         details="Decrypted plaintext integrity check failed! The file may have been tampered with or corrupted."
                     )
             else:
-                print(
-                    Fore.YELLOW
-                    + "⚠️  Warning: sha missing. Plaintext integrity check skipped."
-                    + Style.RESET_ALL
+                click.echo(
+                    style(
+                        "⚠️  Warning: sha missing. Plaintext integrity check skipped.",
+                        fg="yellow",
+                    )
                 )
 
         # Write plaintext to the output file
