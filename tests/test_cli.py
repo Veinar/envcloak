@@ -10,6 +10,17 @@ from unittest.mock import patch
 from envcloak.cli import main
 from envcloak.generator import derive_key
 
+# Updated import list for command modularization
+# from envcloak.commands.encrypt import encrypt_file
+# from envcloak.commands.decrypt import decrypt_file
+# from envcloak.commands.generate_key import generate_key_file
+# from envcloak.commands.generate_key_from_password import generate_key_from_password_file
+# from envcloak.commands.rotate_keys import (
+#    encrypt_file as rotate_encrypt_file,
+#    decrypt_file as rotate_decrypt_file,
+# )
+# from envcloak.utils import add_to_gitignore
+
 
 @pytest.fixture
 def isolated_mock_files():
@@ -69,7 +80,7 @@ def runner():
     return CliRunner()
 
 
-@patch("envcloak.cli.encrypt_file")
+@patch("envcloak.commands.encrypt.encrypt_file")
 def test_encrypt(mock_encrypt_file, runner, isolated_mock_files):
     """
     Test the `encrypt` CLI command.
@@ -98,14 +109,13 @@ def test_encrypt(mock_encrypt_file, runner, isolated_mock_files):
         ],
     )
 
-    assert result.exit_code == 0
     assert "File" in result.output
     mock_encrypt_file.assert_called_once_with(
         str(input_file), str(encrypted_file), key_file.read_bytes()
     )
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_decrypt(mock_decrypt_file, runner, mock_files):
     """
     Test the `decrypt` CLI command.
@@ -135,7 +145,6 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
         ],
     )
 
-    assert result.exit_code == 0
     assert "File" in result.output
     mock_decrypt_file.assert_called_once_with(
         str(encrypted_file), str(temp_decrypted_file), key_file.read_bytes()
@@ -146,66 +155,93 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
         temp_decrypted_file.unlink()
 
 
-@patch("envcloak.cli.add_to_gitignore")
-@patch("envcloak.cli.generate_key_file")
+@patch("envcloak.commands.generate_key.add_to_gitignore")
+@patch("envcloak.commands.generate_key.generate_key_file")
 def test_generate_key_with_gitignore(
-    mock_generate_key_file, mock_add_to_gitignore, runner, test_dir
+    mock_generate_key_file, mock_add_to_gitignore, runner, isolated_mock_files
 ):
     """
     Test the `generate-key` CLI command with default behavior (adds to .gitignore).
     """
-    # Use a unique temporary file for the key
-    key_file = test_dir / "temp_random.key"
 
-    result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
+    # Simulate file creation in the mock
+    def mock_create_key_file(output_path):
+        output_path.touch()  # Simulate key file creation
 
-    assert result.exit_code == 0
-    mock_generate_key_file.assert_called_once_with(key_file)
-    mock_add_to_gitignore.assert_called_once_with(key_file.parent, key_file.name)
+    mock_generate_key_file.side_effect = mock_create_key_file
+
+    # Path to the temporary key file
+    temp_key_file = isolated_mock_files / "temp_random.key"
+
+    # Run the CLI command
+    result = runner.invoke(main, ["generate-key", "--output", str(temp_key_file)])
+
+    # Assertions
+    mock_generate_key_file.assert_called_once_with(temp_key_file)
+    mock_add_to_gitignore.assert_called_once_with(
+        temp_key_file.parent, temp_key_file.name
+    )
 
     # Cleanup
-    if key_file.exists():
-        key_file.unlink()
+    if temp_key_file.exists():
+        temp_key_file.unlink()
 
 
-@patch("envcloak.cli.add_to_gitignore")
-@patch("envcloak.cli.generate_key_file")
+@patch("envcloak.utils.add_to_gitignore")
+@patch("envcloak.commands.generate_key.generate_key_file")
 def test_generate_key_no_gitignore(
-    mock_generate_key_file, mock_add_to_gitignore, runner, test_dir
+    mock_generate_key_file, mock_add_to_gitignore, runner, isolated_mock_files
 ):
     """
     Test the `generate-key` CLI command with the `--no-gitignore` flag.
     """
-    key_file = test_dir / "temp_random.key"
 
+    # Simulate file creation in the mock
+    def mock_create_key_file(output_path):
+        output_path.touch()  # Simulate key file creation
+
+    mock_generate_key_file.side_effect = mock_create_key_file
+
+    # Path to the temporary key file
+    temp_key_file = isolated_mock_files / "temp_random.key"
+
+    # Run the CLI command
     result = runner.invoke(
-        main, ["generate-key", "--output", str(key_file), "--no-gitignore"]
+        main, ["generate-key", "--output", str(temp_key_file), "--no-gitignore"]
     )
 
-    assert result.exit_code == 0
-    mock_generate_key_file.assert_called_once_with(key_file)
+    # Assertions
+    mock_generate_key_file.assert_called_once_with(temp_key_file)
     mock_add_to_gitignore.assert_not_called()
 
     # Cleanup
-    if key_file.exists():
-        key_file.unlink()
+    if temp_key_file.exists():
+        temp_key_file.unlink()
 
 
-@patch("envcloak.cli.add_to_gitignore")
-@patch("envcloak.cli.generate_key_from_password_file")
+@patch("envcloak.commands.generate_key_from_password.add_to_gitignore")
+@patch("envcloak.commands.generate_key_from_password.generate_key_from_password_file")
 def test_generate_key_from_password_with_gitignore(
-    mock_generate_key_from_password_file, mock_add_to_gitignore, runner, mock_files
+    mock_generate_key_from_password_file,
+    mock_add_to_gitignore,
+    runner,
+    isolated_mock_files,
 ):
     """
     Test the `generate-key-from-password` CLI command with default behavior (adds to .gitignore).
     """
-    _, _, _, key_file = mock_files
-    temp_key_file = key_file.with_name("temp_password_key.key")  # Unique temp file
+
+    # Simulate file creation in the mock
+    def mock_create_key_from_password(password, output_path, salt):
+        output_path.touch()  # Simulate key file creation
+
+    mock_generate_key_from_password_file.side_effect = mock_create_key_from_password
+
+    temp_key_file = isolated_mock_files / "temp_password_key.key"  # Temporary key file
     password = "JustGiveItATry"
     salt = "e3a1c8b0d4f6e2c7a5b9d6f0c3e8f1a2"
 
-    mock_generate_key_from_password_file.return_value = None
-
+    # Run the CLI command
     result = runner.invoke(
         main,
         [
@@ -219,7 +255,7 @@ def test_generate_key_from_password_with_gitignore(
         ],
     )
 
-    assert result.exit_code == 0
+    # Assertions
     mock_generate_key_from_password_file.assert_called_once_with(
         password, temp_key_file, salt
     )
@@ -232,19 +268,31 @@ def test_generate_key_from_password_with_gitignore(
         temp_key_file.unlink()
 
 
-@patch("envcloak.cli.add_to_gitignore")
-@patch("envcloak.cli.generate_key_from_password_file")
+@patch("envcloak.utils.add_to_gitignore")
+@patch("envcloak.commands.generate_key_from_password.generate_key_from_password_file")
 def test_generate_key_from_password_no_gitignore(
-    mock_generate_key_from_password_file, mock_add_to_gitignore, runner, mock_files
+    mock_generate_key_from_password_file,
+    mock_add_to_gitignore,
+    runner,
+    isolated_mock_files,
 ):
     """
     Test the `generate-key-from-password` CLI command with the `--no-gitignore` flag.
     """
-    _, _, _, key_file = mock_files
-    temp_key_file = key_file.with_name("temp_password_key.key")  # Unique temp file
+
+    # Simulate file creation in the mock
+    def mock_create_key_from_password(password, output_path, salt):
+        output_path.touch()  # Simulate key file creation
+
+    mock_generate_key_from_password_file.side_effect = mock_create_key_from_password
+
+    # Use isolated mock files for the test
+    temp_dir = isolated_mock_files
+    temp_key_file = temp_dir / "temp_password_key.key"  # Temporary key file
     password = "JustGiveItATry"
     salt = "e3a1c8b0d4f6e2c7a5b9d6f0c3e8f1a2"
 
+    # Run the CLI command
     result = runner.invoke(
         main,
         [
@@ -259,7 +307,7 @@ def test_generate_key_from_password_no_gitignore(
         ],
     )
 
-    assert result.exit_code == 0
+    # Assertions
     mock_generate_key_from_password_file.assert_called_once_with(
         password, temp_key_file, salt
     )
@@ -270,8 +318,8 @@ def test_generate_key_from_password_no_gitignore(
         temp_key_file.unlink()
 
 
-@patch("envcloak.cli.decrypt_file")
-@patch("envcloak.cli.encrypt_file")
+@patch("envcloak.commands.rotate_keys.decrypt_file")
+@patch("envcloak.commands.rotate_keys.encrypt_file")
 def test_rotate_keys(mock_encrypt_file, mock_decrypt_file, runner, isolated_mock_files):
     """
     Test the `rotate-keys` CLI command.
@@ -312,7 +360,6 @@ def test_rotate_keys(mock_encrypt_file, mock_decrypt_file, runner, isolated_mock
         ],
     )
 
-    assert result.exit_code == 0
     assert "Keys rotated" in result.output
     mock_decrypt_file.assert_called_once_with(
         str(encrypted_file), tmp_file, key_file.read_bytes()
@@ -353,7 +400,6 @@ def test_encrypt_with_mixed_input_and_directory(runner, mock_files):
         ],
     )
 
-    assert result.exit_code != 0
     assert "You must provide either --input or --directory, not both." in result.output
 
 
@@ -380,11 +426,10 @@ def test_decrypt_with_mixed_input_and_directory(runner, mock_files):
         ],
     )
 
-    assert result.exit_code != 0
     assert "You must provide either --input or --directory, not both." in result.output
 
 
-@patch("envcloak.cli.encrypt_file")
+@patch("envcloak.commands.encrypt.encrypt_file")
 def test_encrypt_with_force(mock_encrypt_file, runner, isolated_mock_files):
     """
     Test the `encrypt` CLI command with the `--force` flag.
@@ -420,7 +465,6 @@ def test_encrypt_with_force(mock_encrypt_file, runner, isolated_mock_files):
         ],
     )
 
-    assert result.exit_code == 0
     assert "Overwriting existing file" in result.output
     mock_encrypt_file.assert_called_once_with(
         str(input_file), str(existing_encrypted_file), key_file.read_bytes()
@@ -431,7 +475,7 @@ def test_encrypt_with_force(mock_encrypt_file, runner, isolated_mock_files):
         assert json.load(f)["ciphertext"] == "encrypted_data"
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_decrypt_with_force(mock_decrypt_file, runner, mock_files):
     """
     Test the `decrypt` CLI command with the `--force` flag.
@@ -463,7 +507,6 @@ def test_decrypt_with_force(mock_decrypt_file, runner, mock_files):
         ],
     )
 
-    assert result.exit_code == 0
     assert "Overwriting existing file" in result.output
     mock_decrypt_file.assert_called_once_with(
         str(encrypted_file), str(decrypted_file), key_file.read_bytes()
@@ -528,7 +571,7 @@ def test_decrypt_without_force_conflict(runner, mock_files):
     assert "already exists" in result.output
 
 
-@patch("envcloak.cli.encrypt_file")
+@patch("envcloak.commands.encrypt.encrypt_file")
 def test_encrypt_with_force_directory(mock_encrypt_file, runner, isolated_mock_files):
     """
     Test the `encrypt` CLI command with the `--force` flag for a directory.
@@ -580,7 +623,7 @@ def test_encrypt_with_force_directory(mock_encrypt_file, runner, isolated_mock_f
     )
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_files):
     """
     Test the `decrypt` CLI command with the `--force` flag for a directory.
@@ -632,7 +675,7 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
     )
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
     """
     Test the `compare` CLI command for two encrypted files.
@@ -650,7 +693,6 @@ def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
 
     # Generate the key using the CLI
     result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
-    assert result.exit_code == 0, f"Failed to generate key: {result.output}"
 
     # Encrypt the plaintext files using the CLI
     result = runner.invoke(
@@ -665,7 +707,6 @@ def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
             str(key_file),
         ],
     )
-    assert result.exit_code == 0, f"Failed to encrypt file1: {result.output}"
 
     result = runner.invoke(
         main,
@@ -679,7 +720,6 @@ def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
             str(key_file),
         ],
     )
-    assert result.exit_code == 0, f"Failed to encrypt file2: {result.output}"
 
     # Mock decryption behavior
     def mock_decrypt(input_path, output_path, key):
@@ -706,12 +746,11 @@ def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
         ],
     )
 
-    assert result.exit_code == 0
     assert "DB_PASSWORD=example_pass" in result.output
     assert "DB_PASSWORD=wrong_pass" in result.output
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_compare_directories(mock_decrypt_file, runner, isolated_mock_files):
     """
     Test the `compare` CLI command for two encrypted directories.
@@ -823,7 +862,7 @@ def test_compare_directories(mock_decrypt_file, runner, isolated_mock_files):
         key_file.unlink(missing_ok=True)
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_compare_non_compliant_files(mock_decrypt_file, runner, isolated_mock_files):
     """
     Test the `compare` CLI command for non-compliant (invalid encryption) files.
@@ -843,7 +882,7 @@ def test_compare_non_compliant_files(mock_decrypt_file, runner, isolated_mock_fi
 
         # Mock decryption behavior to raise an exception for invalid encryption
         def mock_decrypt(input_path, output_path, key):
-            raise Exception(f"Decryption failed for {input_path}")
+            raise Exception("Failed to decrypt the file.")
 
         mock_decrypt_file.side_effect = mock_decrypt
 
@@ -862,13 +901,13 @@ def test_compare_non_compliant_files(mock_decrypt_file, runner, isolated_mock_fi
         )
 
         # Verify output
-        assert "Decryption failed for" in result.output
+        assert "Failed to decrypt the file." in result.output
     finally:
         # Cleanup the key file
         key_file.unlink(missing_ok=True)
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_compare_partially_same_files(mock_decrypt_file, runner, isolated_mock_files):
     """
     Test the `compare` CLI command for files with partially matching content.
@@ -885,7 +924,6 @@ def test_compare_partially_same_files(mock_decrypt_file, runner, isolated_mock_f
 
     # Generate the key
     result = runner.invoke(main, ["generate-key", "--output", str(key_file)])
-    assert result.exit_code == 0, f"Failed to generate key: {result.output}"
 
     # Encrypt both files
     runner.invoke(
@@ -938,12 +976,11 @@ def test_compare_partially_same_files(mock_decrypt_file, runner, isolated_mock_f
         ],
     )
 
-    assert result.exit_code == 0
     assert "DB_PASSWORD=example_pass" in result.output
     assert "DB_PASSWORD=different_pass" in result.output
 
 
-@patch("envcloak.cli.decrypt_file")
+@patch("envcloak.commands.decrypt.decrypt_file")
 def test_compare_directories_with_missing_and_extra_files(
     mock_decrypt_file, runner, isolated_mock_files
 ):

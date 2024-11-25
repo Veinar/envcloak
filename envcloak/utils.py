@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-import click
 
 
 def add_to_gitignore(directory: str, filename: str):
@@ -61,10 +60,3 @@ def debug_log(message, debug):
     """
     if debug:
         print(message)
-
-
-def debug_option(func):
-    """
-    A reusable decorator for debug
-    """
-    return click.option("--debug", is_flag=True, help="enable debug mode")(func)
