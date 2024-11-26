@@ -6,7 +6,7 @@ def get_latest_version():
     url = "https://pypi.org/pypi/envcloak/json"
     try:
         # Send a GET request to the PyPI API
-        response = requests.get(url,timeout=5)
+        response = requests.get(url, timeout=5)
 
         # Raise an error if the response was not successful
         response.raise_for_status()
@@ -15,6 +15,8 @@ def get_latest_version():
         data = response.json()
         latest_version = data["info"]["version"]
         return latest_version
+    except requests.exceptions.Timeout:
+        print("The request timed out.")
     except requests.exceptions.RequestException as e:
         # Handle network-related errors or invalid responses
         return f"Error fetching the latest version for envcloak: {e}"

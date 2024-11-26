@@ -38,6 +38,7 @@ dependencies = [
     "pyyaml>=5.4.1",
     "cryptography>=3.4.7",
     "defusedxml>=0.7.1"
+    "requests>=2.32.3"
 ]
 requires-python = ">=3.9"
 
