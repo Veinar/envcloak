@@ -302,3 +302,114 @@ def test_compare_partially_same_files(mock_decrypt_file, runner, isolated_mock_f
 
     assert "DB_PASSWORD=example_pass" in result.output
     assert "DB_PASSWORD=different_pass" in result.output
+
+
+@patch("envcloak.commands.decrypt.decrypt_file")
+def test_key_file_not_found_exception(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command raises KeyFileNotFoundException when the key file is missing.
+    """
+    enc_file1 = isolated_mock_files / "variables.env.enc"
+    enc_file2 = isolated_mock_files / "variables_modified.env.enc"
+    missing_key = isolated_mock_files / "missing.key"  # Non-existent key file
+
+    # Invoke the compare command with a missing key file
+    result = runner.invoke(
+        main,
+        [
+            "compare",
+            "--file1",
+            str(enc_file1),
+            "--file2",
+            str(enc_file2),
+            "--key1",
+            str(missing_key),
+        ],
+    )
+
+    # Verify that the appropriate error is raised
+    assert "Key file not found" in result.output
+
+
+@patch("envcloak.commands.decrypt.decrypt_file")
+def test_encrypted_file_not_found_exception(
+    mock_decrypt_file, runner, isolated_mock_files
+):
+    """
+    Test the `compare` CLI command raises EncryptedFileNotFoundException when a file is missing.
+    """
+    missing_file = (
+        isolated_mock_files / "missing_file.env.enc"
+    )  # Non-existent encrypted file
+    valid_key = isolated_mock_files / "mykey.key"  # Existing key file
+
+    # Invoke the compare command with a missing encrypted file
+    result = runner.invoke(
+        main,
+        [
+            "compare",
+            "--file1",
+            str(missing_file),
+            "--file2",
+            str(missing_file),
+            "--key1",
+            str(valid_key),
+        ],
+    )
+
+    # Verify that the appropriate error is raised
+    assert "Encrypted file validation error: Error: Invalid input path" in result.output
+
+
+@patch("envcloak.commands.decrypt.decrypt_file")
+def test_invalid_path_exception(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command raises EncryptedFileNotFoundException for invalid paths.
+    """
+    invalid_path = isolated_mock_files / "invalid_path"  # Non-existent path
+    valid_key = isolated_mock_files / "mykey.key"  # Existing key file
+
+    # Invoke the compare command with an invalid path
+    result = runner.invoke(
+        main,
+        [
+            "compare",
+            "--file1",
+            str(invalid_path),
+            "--file2",
+            str(invalid_path),
+            "--key1",
+            str(valid_key),
+        ],
+    )
+
+    # Verify that the appropriate error is raised
+    assert "Invalid input path" in result.output
+
+
+@patch("envcloak.commands.decrypt.decrypt_file")
+def test_directory_not_found_exception(mock_decrypt_file, runner, isolated_mock_files):
+    """
+    Test the `compare` CLI command raises EncryptedFileNotFoundException when a directory is missing.
+    """
+    missing_directory = (
+        isolated_mock_files / "missing_directory"
+    )  # Non-existent directory
+    valid_key = isolated_mock_files / "mykey.key"  # Existing key file
+
+    # Invoke the compare command with a missing directory
+    result = runner.invoke(
+        main,
+        [
+            "compare",
+            "--file1",
+            str(missing_directory),
+            "--file2",
+            str(missing_directory),
+            "--key1",
+            str(valid_key),
+        ],
+    )
+
+    # Verify that the appropriate error is raised
+    assert "Encrypted file validation error: Error: Invalid input path" in result.output
