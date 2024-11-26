@@ -39,7 +39,6 @@ def compare(file1, file2, key1, key2, output, skip_sha_validation, debug):
     """
     Compare two encrypted environment files or directories.
     """
-    from envcloak.comparator import compare_files_or_directories
 
     try:
         diff = compare_files_or_directories(
