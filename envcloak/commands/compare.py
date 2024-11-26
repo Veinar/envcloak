@@ -5,13 +5,15 @@ from pathlib import Path
 import click
 from click import style
 from envcloak.utils import debug_log
-from envcloak.decorators.common_decorators import debug_option
+from envcloak.decorators.common_decorators import debug_option, no_sha_validation_option
 from envcloak.validation import check_file_exists, check_directory_exists
 from envcloak.encryptor import decrypt_file
 from envcloak.exceptions import FileDecryptionException
 
 
 @click.command()
+@debug_option
+@no_sha_validation_option
 @click.option(
     "--file1",
     "-f1",
@@ -39,13 +41,6 @@ from envcloak.exceptions import FileDecryptionException
     required=False,
     help="Path to save the comparison result as a file.",
 )
-@click.option(
-    "--skip-sha-validation",
-    is_flag=True,
-    default=False,
-    help="Skip SHA-256 integrity validation checks during decryption.",
-)
-@debug_option
 def compare(file1, file2, key1, key2, output, skip_sha_validation, debug):
     """
     Compare two encrypted environment files or directories.

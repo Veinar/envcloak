@@ -28,3 +28,15 @@ def force_option(func):
         is_flag=True,
         help="Force overwrite of existing files or directories.",
     )(func)
+
+
+def no_sha_validation_option(func):
+    """
+    Add a `--no-sha-validation` flag to a Click command.
+    """
+    return click.option(
+        "--skip-sha-validation",
+        is_flag=True,
+        default=False,
+        help="Skip SHA3 integrity validation checks during decryption.",
+    )(func)

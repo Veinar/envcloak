@@ -8,6 +8,7 @@ from envcloak.decorators.common_decorators import (
     debug_option,
     dry_run_option,
     force_option,
+    no_sha_validation_option,
 )
 from envcloak.validation import (
     check_file_exists,
@@ -29,6 +30,7 @@ from envcloak.exceptions import (
 @debug_option
 @dry_run_option
 @force_option
+@no_sha_validation_option
 @click.option(
     "--input",
     "-i",
@@ -49,12 +51,6 @@ from envcloak.exceptions import (
 )
 @click.option(
     "--key-file", "-k", required=True, help="Path to the decryption key file."
-)
-@click.option(
-    "--skip-sha-validation",
-    is_flag=True,
-    default=False,
-    help="Skip SHA3 integrity validation checks during decryption.",
 )
 def decrypt(
     input, directory, output, key_file, dry_run, force, debug, skip_sha_validation
