@@ -9,6 +9,7 @@ from envcloak.exceptions import FileDecryptionException
 # Fixtures imported from conftest.py
 # `mock_files` and `runner`
 
+
 @patch("envcloak.commands.decrypt.decrypt_file")
 def test_decrypt(mock_decrypt_file, runner, mock_files):
     """

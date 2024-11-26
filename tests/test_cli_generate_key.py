@@ -7,6 +7,7 @@ from envcloak.cli import main
 # Fixtures imported from conftest.py
 # `runner` and `isolated_mock_files`
 
+
 @patch("envcloak.commands.generate_key.add_to_gitignore")
 @patch("envcloak.commands.generate_key.generate_key_file")
 def test_generate_key_with_gitignore(

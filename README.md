@@ -17,6 +17,7 @@
 
 ![PyPI - Status](https://img.shields.io/pypi/status/envcloak?label=pypi%20status)
 ![PyPI - Version](https://img.shields.io/pypi/v/envcloak)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/envcloak)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/envcloak)
 
 

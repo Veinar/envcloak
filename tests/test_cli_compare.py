@@ -8,6 +8,7 @@ from envcloak.cli import main
 # Fixtures imported from conftest.py
 # `runner` and `isolated_mock_files`
 
+
 @patch("envcloak.commands.decrypt.decrypt_file")
 def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
     """
@@ -29,11 +30,27 @@ def test_compare_files(mock_decrypt_file, runner, isolated_mock_files):
     # Encrypt the plaintext files using the CLI
     runner.invoke(
         main,
-        ["encrypt", "--input", str(file1), "--output", str(enc_file1), "--key-file", str(key_file)]
+        [
+            "encrypt",
+            "--input",
+            str(file1),
+            "--output",
+            str(enc_file1),
+            "--key-file",
+            str(key_file),
+        ],
     )
     runner.invoke(
         main,
-        ["encrypt", "--input", str(file2), "--output", str(enc_file2), "--key-file", str(key_file)]
+        [
+            "encrypt",
+            "--input",
+            str(file2),
+            "--output",
+            str(enc_file2),
+            "--key-file",
+            str(key_file),
+        ],
     )
 
     # Mock decryption behavior
@@ -79,10 +96,18 @@ def test_compare_directories(mock_decrypt_file, runner, isolated_mock_files):
     dir2.mkdir()
 
     # Create plaintext files
-    (dir1 / "file1.env").write_text("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
-    (dir1 / "file2.env").write_text("DB_USERNAME=example_user\nDB_PASSWORD=another_pass")
-    (dir2 / "file1.env").write_text("DB_USERNAME=example_user\nDB_PASSWORD=example_pass")
-    (dir2 / "file3.env").write_text("DB_USERNAME=example_user\nDB_PASSWORD=missing_pass")
+    (dir1 / "file1.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=example_pass"
+    )
+    (dir1 / "file2.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=another_pass"
+    )
+    (dir2 / "file1.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=example_pass"
+    )
+    (dir2 / "file3.env").write_text(
+        "DB_USERNAME=example_user\nDB_PASSWORD=missing_pass"
+    )
 
     try:
         # Generate the key
@@ -93,7 +118,15 @@ def test_compare_directories(mock_decrypt_file, runner, isolated_mock_files):
             enc_file = dir1 / (file.name + ".enc")
             runner.invoke(
                 main,
-                ["encrypt", "--input", str(file), "--output", str(enc_file), "--key-file", str(key_file)]
+                [
+                    "encrypt",
+                    "--input",
+                    str(file),
+                    "--output",
+                    str(enc_file),
+                    "--key-file",
+                    str(key_file),
+                ],
             )
             file.unlink()  # Remove plaintext file
 
@@ -101,7 +134,15 @@ def test_compare_directories(mock_decrypt_file, runner, isolated_mock_files):
             enc_file = dir2 / (file.name + ".enc")
             runner.invoke(
                 main,
-                ["encrypt", "--input", str(file), "--output", str(enc_file), "--key-file", str(key_file)]
+                [
+                    "encrypt",
+                    "--input",
+                    str(file),
+                    "--output",
+                    str(enc_file),
+                    "--key-file",
+                    str(key_file),
+                ],
             )
             file.unlink()  # Remove plaintext file
 
@@ -211,11 +252,27 @@ def test_compare_partially_same_files(mock_decrypt_file, runner, isolated_mock_f
     # Encrypt both files
     runner.invoke(
         main,
-        ["encrypt", "--input", str(file1), "--output", str(enc_file1), "--key-file", str(key_file)]
+        [
+            "encrypt",
+            "--input",
+            str(file1),
+            "--output",
+            str(enc_file1),
+            "--key-file",
+            str(key_file),
+        ],
     )
     runner.invoke(
         main,
-        ["encrypt", "--input", str(file2), "--output", str(enc_file2), "--key-file", str(key_file)]
+        [
+            "encrypt",
+            "--input",
+            str(file2),
+            "--output",
+            str(enc_file2),
+            "--key-file",
+            str(key_file),
+        ],
     )
 
     # Mock decryption behavior

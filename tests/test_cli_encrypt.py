@@ -10,6 +10,7 @@ from envcloak.cli import main
 # Fixtures imported from conftest.py
 # `isolated_mock_files` and `runner`
 
+
 @patch("envcloak.commands.encrypt.encrypt_file")
 def test_encrypt(mock_encrypt_file, runner, isolated_mock_files):
     """

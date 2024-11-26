@@ -8,6 +8,7 @@ from envcloak.cli import main
 # Fixtures imported from conftest.py
 # `runner` and `isolated_mock_files`
 
+
 @patch("envcloak.commands.rotate_keys.decrypt_file")
 @patch("envcloak.commands.rotate_keys.encrypt_file")
 def test_rotate_keys(mock_encrypt_file, mock_decrypt_file, runner, isolated_mock_files):

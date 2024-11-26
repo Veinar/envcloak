@@ -12,6 +12,7 @@ import pytest
 from click.testing import CliRunner
 from envcloak.commands.decrypt import decrypt
 
+
 def test_pipeline_usage():
     # Paths
     mock_dir = "./tests/mock"
@@ -21,9 +22,15 @@ def test_pipeline_usage():
     output_file = "./variables_decrypted_temp.env"
 
     # Ensure required files exist
-    assert os.path.exists(original_key_file), f"Key file {original_key_file} does not exist"
-    assert os.path.exists(encrypted_file), f"Encrypted file {encrypted_file} does not exist"
-    assert os.path.exists(expected_output_file), f"Expected output file {expected_output_file} does not exist"
+    assert os.path.exists(
+        original_key_file
+    ), f"Key file {original_key_file} does not exist"
+    assert os.path.exists(
+        encrypted_file
+    ), f"Encrypted file {encrypted_file} does not exist"
+    assert os.path.exists(
+        expected_output_file
+    ), f"Expected output file {expected_output_file} does not exist"
 
     # Read the original key file as bytes
     with open(original_key_file, "rb") as f:
@@ -32,7 +39,7 @@ def test_pipeline_usage():
     # Encode the key in base64
     key_base64 = base64.b64encode(original_key_bytes)
 
-    # This simulates storing keyfile as based64 string 
+    # This simulates storing keyfile as based64 string
 
     # Decode the base64 back to its original form
     key_decoded = base64.b64decode(key_base64)
@@ -48,10 +55,13 @@ def test_pipeline_usage():
         result = runner.invoke(
             decrypt,
             [
-                "--input", encrypted_file,
-                "--output", output_file,
-                "--key-file", temp_key_file_name
-            ]
+                "--input",
+                encrypted_file,
+                "--output",
+                output_file,
+                "--key-file",
+                temp_key_file_name,
+            ],
         )
 
         # Check if the command executed successfully
@@ -61,10 +71,15 @@ def test_pipeline_usage():
         assert os.path.exists(output_file), f"Output file {output_file} was not created"
 
         # Verify the decrypted file matches the expected content
-        with open(output_file, "r") as decrypted_file, open(expected_output_file, "r") as expected_file:
+        with (
+            open(output_file, "r") as decrypted_file,
+            open(expected_output_file, "r") as expected_file,
+        ):
             decrypted_content = decrypted_file.read()
             expected_content = expected_file.read()
-            assert decrypted_content == expected_content, "Decrypted content does not match expected content"
+            assert (
+                decrypted_content == expected_content
+            ), "Decrypted content does not match expected content"
 
     finally:
         # Cleanup
