@@ -3,7 +3,8 @@ from pathlib import Path
 import pytest
 import shutil
 import tempfile
-from tests.test_cli import isolated_mock_files
+
+# from tests.test_cli import isolated_mock_files
 from click.testing import CliRunner
 from envcloak.cli import main
 
