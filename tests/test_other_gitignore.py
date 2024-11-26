@@ -23,11 +23,13 @@ def test_add_to_gitignore_existing_file(tmp_path, capsys):
     updated_content = gitignore_path.read_text(encoding="utf-8")
     assert filename in updated_content, f"{filename} should be in .gitignore"
     # Normalize the content to ignore extra newlines
-    normalized_content = "\n".join(
-        line for line in updated_content.splitlines() if line.strip()
-    ) + "\n"
+    normalized_content = (
+        "\n".join(line for line in updated_content.splitlines() if line.strip()) + "\n"
+    )
     expected_content = f"{existing_content.strip()}\n{filename}\n"
-    assert normalized_content == expected_content, f"Expected content:\n{expected_content}\nGot:\n{normalized_content}"
+    assert (
+        normalized_content == expected_content
+    ), f"Expected content:\n{expected_content}\nGot:\n{normalized_content}"
 
     # Verify the printed message
     captured = capsys.readouterr()
@@ -51,7 +53,9 @@ def test_add_to_gitignore_already_listed(tmp_path, capsys):
 
     # Verify that the content remains unchanged
     updated_content = gitignore_path.read_text(encoding="utf-8")
-    assert updated_content == existing_content, ".gitignore content should remain unchanged"
+    assert (
+        updated_content == existing_content
+    ), ".gitignore content should remain unchanged"
 
     # Verify no additional output
     captured = capsys.readouterr()

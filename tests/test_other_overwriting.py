@@ -12,7 +12,9 @@ def test_check_directory_overwrite_existing_with_files(tmp_path):
     dir_with_files.mkdir()
     (dir_with_files / "file1.txt").touch()
 
-    with pytest.raises(OutputFileExistsException, match="Directory already exists and contains files"):
+    with pytest.raises(
+        OutputFileExistsException, match="Directory already exists and contains files"
+    ):
         check_directory_overwrite(str(dir_with_files))
 
 
@@ -26,7 +28,9 @@ def test_check_directory_overwrite_existing_empty(tmp_path):
     try:
         check_directory_overwrite(str(empty_dir))
     except OutputFileExistsException:
-        pytest.fail("check_directory_overwrite raised an exception for an empty directory.")
+        pytest.fail(
+            "check_directory_overwrite raised an exception for an empty directory."
+        )
 
 
 def test_check_directory_overwrite_nonexistent(tmp_path):
@@ -38,4 +42,6 @@ def test_check_directory_overwrite_nonexistent(tmp_path):
     try:
         check_directory_overwrite(str(nonexistent_dir))
     except OutputFileExistsException:
-        pytest.fail("check_directory_overwrite raised an exception for a nonexistent directory.")
+        pytest.fail(
+            "check_directory_overwrite raised an exception for a nonexistent directory."
+        )

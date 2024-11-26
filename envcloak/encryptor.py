@@ -1,6 +1,7 @@
 import os
 import base64
 import json
+from pathlib import Path
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
@@ -17,7 +18,7 @@ from envcloak.exceptions import (
     IntegrityCheckFailedException,
 )
 from envcloak.constants import NONCE_SIZE, KEY_SIZE, SALT_SIZE
-from envcloak.utils import compute_sha256
+from envcloak.utils import compute_sha256, debug_log
 
 
 def derive_key(password: str, salt: bytes) -> bytes:
@@ -213,3 +214,35 @@ def decrypt_file(
             outfile.write(decrypted_data)
     except Exception as e:
         raise FileDecryptionException(details=str(e)) from e
+
+
+def traverse_and_process_files(
+    input_dir, output_dir, key, dry_run, debug, process_file, recursion=False
+):
+    """
+    Traverse a directory recursively if `recursion` is enabled, process files,
+    and replicate the directory structure in output_dir.
+
+    :param input_dir: Source directory to traverse.
+    :param output_dir: Target directory to replicate structure and save processed files.
+    :param key: Encryption/decryption key.
+    :param dry_run: Flag indicating if the operation should be simulated without making changes.
+    :param debug: Debug flag for verbose logging.
+    :param process_file: Callable to process individual files.
+    :param recursion: Flag to enable or disable recursive traversal.
+    """
+    input_dir = Path(input_dir)
+    output_dir = Path(output_dir)
+
+    files_to_process = input_dir.rglob("*") if recursion else input_dir.iterdir()
+
+    for file_path in files_to_process:
+        if file_path.is_file():
+            relative_path = file_path.relative_to(input_dir)
+            target_path = output_dir / relative_path
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+
+            if not dry_run:
+                process_file(file_path, target_path, key, debug)
+            else:
+                debug_log(f"Dry-run: Would process {file_path} -> {target_path}", debug)

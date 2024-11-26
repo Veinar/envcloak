@@ -170,6 +170,7 @@ def test_generate_key_from_password_no_gitignore(
     if temp_key_file.exists():
         temp_key_file.unlink()
 
+
 @patch("envcloak.generator.os.urandom")
 @patch("envcloak.generator.derive_key")
 def test_generate_key_from_password_random_salt(
@@ -205,7 +206,9 @@ def test_generate_key_from_password_random_salt(
 
     # Verify behavior
     assert temp_key_file.exists(), "The key file should be created."
-    assert temp_key_file.read_bytes() == expected_key, "The key file should contain the derived key."
+    assert (
+        temp_key_file.read_bytes() == expected_key
+    ), "The key file should contain the derived key."
     mock_urandom.assert_called_once_with(16)
     mock_derive_key.assert_called_once_with(password, mock_salt)
 
@@ -271,7 +274,9 @@ def test_generate_key_from_password_valid_salt(
 
     # Verify behavior
     assert temp_key_file.exists(), "The key file should be created."
-    assert temp_key_file.read_bytes() == expected_key, "The key file should contain the derived key."
+    assert (
+        temp_key_file.read_bytes() == expected_key
+    ), "The key file should contain the derived key."
     mock_derive_key.assert_called_once_with(password, valid_salt)
 
 
@@ -309,5 +314,7 @@ def test_generate_key_from_password_file_creation(
 
     # Verify behavior
     assert temp_key_file.exists(), "The key file should be created."
-    assert temp_key_file.read_bytes() == expected_key, "The key file should contain the derived key."
+    assert (
+        temp_key_file.read_bytes() == expected_key
+    ), "The key file should contain the derived key."
     mock_derive_key.assert_called_once_with(password, bytes.fromhex(salt))

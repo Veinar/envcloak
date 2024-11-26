@@ -121,13 +121,16 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
     output_directory.mkdir()
     (output_directory / "file1.env").write_text("existing decrypted content")
 
+    # Write a mock key file
+    key_file.write_bytes(b"mock_key")
+
     def mock_decrypt(input_path, output_path, key, validate_integrity=True):
         with open(output_path, "w") as f:
             f.write("decrypted content")
 
     mock_decrypt_file.side_effect = mock_decrypt
 
-    # Invoke with --force
+    # Invoke with --force and --recursion
     result = runner.invoke(
         main,
         [
@@ -139,23 +142,31 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
             "--key-file",
             str(key_file),
             "--force",
+            "--recursion",  # Enable recursion
             "--skip-sha-validation",
         ],
     )
 
+    # Check that output mentions overwriting existing files
     assert "Overwriting existing file" in result.output
+
+    # Verify that decrypt_file was called for each input file
     mock_decrypt_file.assert_any_call(
         str(directory / "file1.env.enc"),
         str(output_directory / "file1.env"),
-        key_file.read_bytes(),
+        b"mock_key",
         validate_integrity=False,  # Ensure the validate_integrity flag matches
     )
     mock_decrypt_file.assert_any_call(
         str(directory / "file2.env.enc"),
         str(output_directory / "file2.env"),
-        key_file.read_bytes(),
+        b"mock_key",
         validate_integrity=False,  # Ensure the validate_integrity flag matches
     )
+
+    # Ensure the output is clean and correct
+    assert (output_directory / "file1.env").read_text() == "decrypted content"
+    assert (output_directory / "file2.env").read_text() == "decrypted content"
 
 
 def test_decrypt_without_force_conflict(runner, mock_files):

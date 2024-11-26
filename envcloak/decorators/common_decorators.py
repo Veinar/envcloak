@@ -40,3 +40,15 @@ def no_sha_validation_option(func):
         default=False,
         help="Skip SHA3 integrity validation checks during decryption.",
     )(func)
+
+
+def recursion(func):
+    """
+    Add `--recursion` and `-r` flags to a Click command.
+    """
+    return click.option(
+        "--recursion",
+        "-r",
+        is_flag=True,
+        help="Enable recursion to process files in subdirectories.",
+    )(func)
