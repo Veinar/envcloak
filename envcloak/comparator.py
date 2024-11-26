@@ -62,10 +62,16 @@ def compare_files_or_directories(
             debug_log("Debug: Both inputs are files. Decrypting files.", debug)
             try:
                 decrypt_file(
-                    file1, file1_decrypted, key1_bytes, validate_integrity=not skip_sha_validation
+                    file1,
+                    file1_decrypted,
+                    key1_bytes,
+                    validate_integrity=not skip_sha_validation,
                 )
                 decrypt_file(
-                    file2, file2_decrypted, key2_bytes, validate_integrity=not skip_sha_validation
+                    file2,
+                    file2_decrypted,
+                    key2_bytes,
+                    validate_integrity=not skip_sha_validation,
                 )
             except FileDecryptionException as e:
                 raise ValueError(f"Decryption failed: {e}")
@@ -84,7 +90,10 @@ def compare_files_or_directories(
             )
         # Compare two directories
         elif Path(file1).is_dir() and Path(file2).is_dir():
-            debug_log("Debug: Both inputs are directories. Decrypting directory contents.", debug)
+            debug_log(
+                "Debug: Both inputs are directories. Decrypting directory contents.",
+                debug,
+            )
             os.makedirs(file1_decrypted, exist_ok=True)
             os.makedirs(file2_decrypted, exist_ok=True)
 
@@ -103,13 +112,21 @@ def compare_files_or_directories(
             for filename, file1_path in file1_files.items():
                 file1_dec = os.path.join(file1_decrypted, filename.replace(".enc", ""))
                 if filename in file2_files:
-                    file2_dec = os.path.join(file2_decrypted, filename.replace(".enc", ""))
+                    file2_dec = os.path.join(
+                        file2_decrypted, filename.replace(".enc", "")
+                    )
                     try:
                         decrypt_file(
-                            str(file1_path), file1_dec, key1_bytes, validate_integrity=not skip_sha_validation
+                            str(file1_path),
+                            file1_dec,
+                            key1_bytes,
+                            validate_integrity=not skip_sha_validation,
                         )
                         decrypt_file(
-                            str(file2_files[filename]), file2_dec, key2_bytes, validate_integrity=not skip_sha_validation
+                            str(file2_files[filename]),
+                            file2_dec,
+                            key2_bytes,
+                            validate_integrity=not skip_sha_validation,
                         )
                     except FileDecryptionException as e:
                         raise ValueError(f"Decryption failed for {filename}: {e}")
@@ -123,17 +140,31 @@ def compare_files_or_directories(
 
                     diff.extend(
                         difflib.unified_diff(
-                            content1, content2, lineterm="", fromfile=f"File1/{filename}", tofile=f"File2/{filename}"
+                            content1,
+                            content2,
+                            lineterm="",
+                            fromfile=f"File1/{filename}",
+                            tofile=f"File2/{filename}",
                         )
                     )
                 else:
-                    debug_log(f"Debug: File {filename} exists in File1 but not in File2.", debug)
-                    diff.append(f"File present in File1 but missing in File2: {filename}")
+                    debug_log(
+                        f"Debug: File {filename} exists in File1 but not in File2.",
+                        debug,
+                    )
+                    diff.append(
+                        f"File present in File1 but missing in File2: {filename}"
+                    )
 
             for filename in file2_files:
                 if filename not in file1_files:
-                    debug_log(f"Debug: File {filename} exists in File2 but not in File1.", debug)
-                    diff.append(f"File present in File2 but missing in File1: {filename}")
+                    debug_log(
+                        f"Debug: File {filename} exists in File2 but not in File1.",
+                        debug,
+                    )
+                    diff.append(
+                        f"File present in File2 but missing in File1: {filename}"
+                    )
         else:
             raise ValueError("Both inputs must either be files or directories.")
 
