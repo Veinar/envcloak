@@ -47,9 +47,22 @@ jobs:
       - name: Build binary
         run: pyinstaller --onefile --name envcloak --distpath binaries envcloak/cli.py
 
+      - name: Rename Binaries
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            mv binaries/envcloak binaries/envcloak-linux
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            mv binaries/envcloak binaries/envcloak-macos
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv binaries/envcloak binaries/envcloak-windows.exe
+          fi
+
       - name: Upload binaries to release
         uses: softprops/action-gh-release@v1
         with:
-          files: binaries/*
+          files: |
+            binaries/envcloak-linux
+            binaries/envcloak-macos
+            binaries/envcloak-windows.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

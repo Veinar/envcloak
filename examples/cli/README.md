@@ -185,3 +185,18 @@ Distribute the `.env.enc` file and keep the `myproject.key` secure.
 * Never commit keys: Always use `.gitignore` to exclude `key` files.
 * Secure `password`s and `salt`s: Treat them as sensitive as the `key`s themselves.
 * Automate `encryption`/`decryption`: Include EnvCloak commands in CI/CD pipelines or scripts for consistency.
+
+
+
+## Get yourself a EnvCloak without requirement to use Python! 🥳
+Download self-contained binary:
+```bash
+# For Linux
+wget -O envcloak https://github.com/Veinar/envcloak/releases/latest/download/envcloak-linux
+
+# For macOS
+wget -O envcloak https://github.com/Veinar/envcloak/releases/latest/download/envcloak-macos
+
+# For Windows
+wget -O envcloak.exe https://github.com/Veinar/envcloak/releases/latest/download/envcloak-windows.exe
+```
