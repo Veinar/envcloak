@@ -35,6 +35,8 @@ or if you want `dev` tools too 😎:
 pip install envcloak[dev]
 ```
 
+> 👋 There are also [self-contained binaries](examples/cli/README.MD#get-yourself-a-envcloak-without-requirement-to-use-python-) for `Windows`, `Linux` and `MacOS`, don't have to use python at all! 🥳
+
 ## 🚀 Example Workflow
 
 > ℹ️ More examples are present in [examples](./examples) section.
