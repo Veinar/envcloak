@@ -50,7 +50,15 @@ from envcloak.exceptions import (
 @click.option(
     "--key-file", "-k", required=True, help="Path to the decryption key file."
 )
-def decrypt(input, directory, output, key_file, dry_run, force, debug):
+@click.option(
+    "--skip-sha-validation",
+    is_flag=True,
+    default=False,
+    help="Skip SHA3 integrity validation checks during decryption.",
+)
+def decrypt(
+    input, directory, output, key_file, dry_run, force, debug, skip_sha_validation
+):
     """
     Decrypt environment variables from a file or all files in a directory.
     """
@@ -122,7 +130,7 @@ def decrypt(input, directory, output, key_file, dry_run, force, debug):
                 f"Debug: Decrypting file {input} -> {output} using key {key_file}.",
                 debug,
             )
-            decrypt_file(input, output, key)
+            decrypt_file(input, output, key, validate_integrity=not skip_sha_validation)
             click.echo(f"File {input} decrypted -> {output} using key {key_file}")
         elif directory:
             input_dir = Path(directory)
@@ -141,7 +149,12 @@ def decrypt(input, directory, output, key_file, dry_run, force, debug):
                         f"Debug: Decrypting file {file} -> {output_file} using key {key_file}.",
                         debug,
                     )
-                    decrypt_file(str(file), str(output_file), key)
+                    decrypt_file(
+                        str(file),
+                        str(output_file),
+                        key,
+                        validate_integrity=not skip_sha_validation,
+                    )
                     click.echo(
                         f"File {file} decrypted -> {output_file} using key {key_file}"
                     )
