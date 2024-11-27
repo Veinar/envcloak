@@ -84,14 +84,6 @@ In the **Decrypting Variables** and **Best Practices** sections, add the followi
 
 ---
 
-### CLI README Updates
-
-Under the **Decrypting Variables** section, add the following:
-
-> SHA validation ensures encrypted file integrity during decryption. Use `--no-sha-validation` cautiously when skipping these checks. See [SHA Checksum Mechanism](./docs/sha_checksum.md) for more information.
-
----
-
 ## Best Practices for SHA Validation
 
 1. **Use Default Settings**: Since SHA is automatically applied during encryption, rely on default validation for better security. 🔒
