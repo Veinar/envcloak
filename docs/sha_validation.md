@@ -72,17 +72,6 @@ File ./tests/mock/sha_variables_broken.env.enc decrypted -> variables_decrypted_
 
 ⚠️ The `--no-sha-validation` flag disables integrity checks, allowing decryption to proceed even for corrupted files. This may result in untrustworthy outputs.
 
----
-
-## Adding Documentation References
-
-### Main README Updates
-
-In the **Decrypting Variables** and **Best Practices** sections, add the following sentence:
-
-> EnvCloak includes SHA validation to ensure the integrity of encrypted files and their content. For details, see [SHA Checksum Mechanism](./docs/sha_checksum.md).
-
----
 
 ## Best Practices for SHA Validation
 
