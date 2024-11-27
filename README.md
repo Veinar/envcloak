@@ -90,6 +90,7 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 🔑 Encryption Algorithm
 
 * Powered by AES-256-GCM for speed and security.
+* Provides [`sha3` validation](docs/sha_validation.md) of files and content.
 
 🗝️ Key Storage
 
@@ -101,6 +102,7 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 * Works with individual files.
 * Works with directories using `--directory` instead of `--input` on `encrypt` and `decrypt`.
 > ℹ️ EnvCloak process files in batch one-by-one. 
+* Can [recursively](docs/recursive.md) encrypt or decrypt directories.
 
 🚦 Error Handling
 
