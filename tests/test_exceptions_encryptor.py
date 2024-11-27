@@ -20,8 +20,8 @@ from envcloak.encryptor import (
 from envcloak.constants import SALT_SIZE, KEY_SIZE, NONCE_SIZE
 
 
-def test_derive_key_invalid_salt():
-    password = "JustGiveItATry"
+def test_derive_key_invalid_salt(read_variable):
+    password = read_variable("pass1")
     invalid_salt = os.urandom(SALT_SIZE - 1)  # Invalid salt size
 
     with pytest.raises(InvalidSaltException, match="Expected salt of size"):

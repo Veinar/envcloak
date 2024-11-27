@@ -3,36 +3,8 @@ from pathlib import Path
 import pytest
 import shutil
 import tempfile
-from tests.test_cli import isolated_mock_files
 from click.testing import CliRunner
 from envcloak.cli import main
-
-
-@pytest.fixture
-def runner():
-    """
-    Fixture for Click CLI Runner.
-    """
-    return CliRunner()
-
-
-@pytest.fixture
-def isolated_mock_files():
-    """
-    Provide isolated mock files in a temporary directory for each test.
-    Prevents modification of the original mock files.
-    """
-    with tempfile.TemporaryDirectory() as temp_dir:
-        temp_dir_path = Path(temp_dir)
-        mock_dir = Path("tests/mock")
-
-        # Copy all mock files to the temporary directory
-        for file in mock_dir.iterdir():
-            if file.is_file():
-                shutil.copy(file, temp_dir_path / file.name)
-
-        yield temp_dir_path
-        # Cleanup is handled automatically by TemporaryDirectory
 
 
 @pytest.fixture
@@ -145,12 +117,12 @@ def test_generate_key_dry_run(runner, isolated_mock_files):
     assert f"Output path already exists: {key_file}" not in result.output
 
 
-def test_generate_key_from_password_dry_run(runner, isolated_mock_files):
+def test_generate_key_from_password_dry_run(runner, isolated_mock_files, read_variable):
     """
     Test the `generate-key-from-password` CLI command in dry-run mode.
     """
     key_file = isolated_mock_files / "password.key"
-    password = "MySecretPassword"
+    password = read_variable("pass4")
     salt = "a3b4c5d6e7f8f9a0a1b2c3d4e5f6a7b8"  # Valid 16-byte hex string
 
     result = runner.invoke(

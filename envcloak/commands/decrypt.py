@@ -8,6 +8,8 @@ from envcloak.decorators.common_decorators import (
     debug_option,
     dry_run_option,
     force_option,
+    no_sha_validation_option,
+    recursion,
 )
 from envcloak.validation import (
     check_file_exists,
@@ -17,7 +19,7 @@ from envcloak.validation import (
     check_permissions,
     check_disk_space,
 )
-from envcloak.encryptor import decrypt_file
+from envcloak.encryptor import decrypt_file, traverse_and_process_files
 from envcloak.exceptions import (
     OutputFileExistsException,
     DiskSpaceException,
@@ -29,6 +31,8 @@ from envcloak.exceptions import (
 @debug_option
 @dry_run_option
 @force_option
+@no_sha_validation_option
+@recursion
 @click.option(
     "--input",
     "-i",
@@ -50,7 +54,17 @@ from envcloak.exceptions import (
 @click.option(
     "--key-file", "-k", required=True, help="Path to the decryption key file."
 )
-def decrypt(input, directory, output, key_file, dry_run, force, debug):
+def decrypt(
+    input,
+    directory,
+    output,
+    key_file,
+    dry_run,
+    force,
+    debug,
+    skip_sha_validation,
+    recursion,
+):
     """
     Decrypt environment variables from a file or all files in a directory.
     """
@@ -122,29 +136,24 @@ def decrypt(input, directory, output, key_file, dry_run, force, debug):
                 f"Debug: Decrypting file {input} -> {output} using key {key_file}.",
                 debug,
             )
-            decrypt_file(input, output, key)
+            decrypt_file(input, output, key, validate_integrity=not skip_sha_validation)
             click.echo(f"File {input} decrypted -> {output} using key {key_file}")
         elif directory:
-            input_dir = Path(directory)
-            output_dir = Path(output)
-            if not output_dir.exists():
-                debug_log(
-                    f"Debug: Output directory {output_dir} does not exist. Creating it.",
-                    debug,
-                )
-                output_dir.mkdir(parents=True)
-
-            for file in input_dir.iterdir():
-                if file.is_file() and file.suffix == ".enc":  # Only decrypt .enc files
-                    output_file = output_dir / file.stem  # Remove .enc from filename
-                    debug_log(
-                        f"Debug: Decrypting file {file} -> {output_file} using key {key_file}.",
-                        debug,
-                    )
-                    decrypt_file(str(file), str(output_file), key)
-                    click.echo(
-                        f"File {file} decrypted -> {output_file} using key {key_file}"
-                    )
+            traverse_and_process_files(
+                directory,
+                output,
+                key,
+                dry_run,
+                debug,
+                process_file=lambda src, dest, key, dbg: decrypt_file(
+                    str(src),
+                    str(dest).replace(".enc", ""),
+                    key,
+                    validate_integrity=not skip_sha_validation,
+                ),
+                recursion=recursion,
+            )
+            click.echo(f"All files in directory {directory} decrypted -> {output}")
     except (
         OutputFileExistsException,
         DiskSpaceException,

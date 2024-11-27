@@ -12,9 +12,13 @@
 ![Code style](https://img.shields.io/badge/code%20style-black-black)
 ![CI/CD Pipeline](https://github.com/Veinar/envcloak/actions/workflows/test.yaml/badge.svg)
 ![Build Pipeline](https://github.com/Veinar/envcloak/actions/workflows/build.yaml/badge.svg)
+[![codecov](https://codecov.io/gh/Veinar/envcloak/graph/badge.svg?token=CJG1H1VUEX)](https://codecov.io/gh/Veinar/envcloak)
+[![CodeFactor](https://www.codefactor.io/repository/github/veinar/envcloak/badge)](https://www.codefactor.io/repository/github/veinar/envcloak)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9736/badge)](https://www.bestpractices.dev/projects/9736)
 
 ![PyPI - Status](https://img.shields.io/pypi/status/envcloak?label=pypi%20status)
 ![PyPI - Version](https://img.shields.io/pypi/v/envcloak)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/envcloak)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/envcloak)
 
 
@@ -31,6 +35,8 @@ or if you want `dev` tools too 😎:
 ```bash
 pip install envcloak[dev]
 ```
+
+> 👋 There are also [self-contained binaries](examples/cli/README.md#get-yourself-a-envcloak-without-requirement-to-use-python-) for `Windows`, `Linux` and `MacOS`, don't have to use python at all! 🥳
 
 ## 🚀 Example Workflow
 
@@ -84,6 +90,7 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 🔑 Encryption Algorithm
 
 * Powered by AES-256-GCM for speed and security.
+* Provides [`sha3` validation](docs/sha_validation.md) of files and content.
 
 🗝️ Key Storage
 
@@ -95,6 +102,7 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 * Works with individual files.
 * Works with directories using `--directory` instead of `--input` on `encrypt` and `decrypt`.
 > ℹ️ EnvCloak process files in batch one-by-one. 
+* Can [recursively](docs/recursive.md) encrypt or decrypt directories.
 
 🚦 Error Handling
 
@@ -128,6 +136,14 @@ So go ahead—secure your `.env` like a boss. And remember, EnvCloak isn’t jus
 | [**Doppler**](https://www.doppler.com/)   | Centralized secret management with CI/CD integration. | Paid plans for advanced features, cloud-reliant. |
 
 > **Key Differentiator for EnvCloak**: Focused specifically on Python developers and lightweight CI/CD needs, making it ideal for small to medium projects.
+
+## 🌟  Hall of Fame
+
+A huge thanks to all our amazing contributors! 🎉
+
+<a href="https://github.com/Veinar/envcloak/graphs/contributors">
+<img src="https://contrib.rocks/image?repo=Veinar/envcloak"/>
+</a>
 
 ## 🔗 Get Started Today!
 

@@ -1,0 +1,68 @@
+name: Build binaries and Release
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+jobs:
+  build-and-release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Python Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install Dependencies and Tools
+        run: |
+          pip install --upgrade pip
+          pip install pyinstaller
+          pip install -r <(python -c '
+            import toml
+            with open("pyproject.toml", "r") as f:
+                project = toml.load(f)["project"]
+                dependencies = project.get("dependencies", [])
+                print("\\n".join(dependencies))
+          ')
+
+      - name: Build binary
+        run: pyinstaller --onefile --name envcloak --distpath binaries envcloak/cli.py
+
+      - name: Rename Binaries
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            mv binaries/envcloak binaries/envcloak-linux
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            mv binaries/envcloak binaries/envcloak-macos
+          elif [[ "$RUNNER_OS" == "Windows" ]]; then
+            mv binaries/envcloak binaries/envcloak-windows.exe
+          fi
+
+      - name: Upload binaries to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            binaries/envcloak-linux
+            binaries/envcloak-macos
+            binaries/envcloak-windows.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

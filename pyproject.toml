@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "envcloak"
-version = "0.1.2"
+version = "0.2.1"
 description = "Securely manage encrypted environment variables with ease."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -19,7 +19,7 @@ keywords = [
     "python"
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
     "Intended Audience :: Information Technology",
@@ -37,7 +37,8 @@ dependencies = [
     "python-dotenv>=0.21.0",
     "pyyaml>=5.4.1",
     "cryptography>=3.4.7",
-    "defusedxml>=0.7.1"
+    "defusedxml>=0.7.1",
+    "requests>=2.32.3"
 ]
 requires-python = ">=3.9"
 
@@ -46,7 +47,8 @@ dev = [
     "pytest>=6.0",
     "bandit>=1.7.10",
     "pylint>=3.3.1",
-    "black>=22.0"
+    "black>=22.0",
+    "hypothesis>=6.0"
 ]
 
 [project.urls]
