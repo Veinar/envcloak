@@ -8,6 +8,7 @@ from envcloak.decorators.common_decorators import (
     debug_option,
     force_option,
     dry_run_option,
+    recursion,
 )
 from envcloak.validation import (
     check_file_exists,
@@ -17,7 +18,7 @@ from envcloak.validation import (
     check_permissions,
     check_disk_space,
 )
-from envcloak.encryptor import encrypt_file
+from envcloak.encryptor import encrypt_file, traverse_and_process_files
 from envcloak.exceptions import (
     OutputFileExistsException,
     DiskSpaceException,
@@ -29,6 +30,7 @@ from envcloak.exceptions import (
 @debug_option
 @dry_run_option
 @force_option
+@recursion
 @click.option(
     "--input", "-i", required=False, help="Path to the input file (e.g., .env)."
 )
@@ -47,7 +49,7 @@ from envcloak.exceptions import (
 @click.option(
     "--key-file", "-k", required=True, help="Path to the encryption key file."
 )
-def encrypt(input, directory, output, key_file, dry_run, force, debug):
+def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion):
     """
     Encrypt environment variables from a file or all files in a directory.
     """
@@ -126,26 +128,18 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug):
             encrypt_file(input, output, key)
             click.echo(f"File {input} encrypted -> {output} using key {key_file}")
         elif directory:
-            input_dir = Path(directory)
-            output_dir = Path(output)
-            if not output_dir.exists():
-                debug_log(
-                    f"Debug: Output directory {output_dir} does not exist. Creating it.",
-                    debug,
-                )
-                output_dir.mkdir(parents=True)
-
-            for file in input_dir.iterdir():
-                if file.is_file():  # Skip directories
-                    output_file = output_dir / (file.name + ".enc")
-                    debug_log(
-                        f"Debug: Encrypting file {file} -> {output_file} using key {key_file}.",
-                        debug,
-                    )
-                    encrypt_file(str(file), str(output_file), key)
-                    click.echo(
-                        f"File {file} encrypted -> {output_file} using key {key_file}"
-                    )
+            traverse_and_process_files(
+                directory,
+                output,
+                key,
+                dry_run,
+                debug,
+                process_file=lambda src, dest, key, dbg: encrypt_file(
+                    str(src), str(dest) + ".enc", key
+                ),
+                recursion=recursion,
+            )
+            click.echo(f"All files in directory {directory} encrypted -> {output}")
     except (
         OutputFileExistsException,
         DiskSpaceException,

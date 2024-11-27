@@ -28,7 +28,9 @@ def test_check_path_conflict_non_overlapping_paths(tmp_path):
     try:
         check_path_conflict(str(input_path), str(output_path))
     except ValueError:
-        pytest.fail("check_path_conflict raised a ValueError for non-overlapping paths.")
+        pytest.fail(
+            "check_path_conflict raised a ValueError for non-overlapping paths."
+        )
 
 
 def test_check_path_conflict_same_path(tmp_path):
