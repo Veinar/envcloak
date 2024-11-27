@@ -5,6 +5,10 @@ from envcloak.commands.generate_key import generate_key
 from envcloak.commands.generate_key_from_password import generate_key_from_password
 from envcloak.commands.rotate_keys import rotate_keys
 from envcloak.commands.compare import compare
+from envcloak.version_check import warn_if_outdated
+
+# Warn About Outdated Versions
+warn_if_outdated()
 
 
 @click.group()
