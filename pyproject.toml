@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "envcloak"
-version = "0.1.2"
+version = "0.2.1"
 description = "Securely manage encrypted environment variables with ease."
 readme = "README.md"
 license = { file = "LICENSE" }
@@ -19,7 +19,7 @@ keywords = [
     "python"
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: System Administrators",
     "Intended Audience :: Information Technology",

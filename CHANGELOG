@@ -1,5 +1,17 @@
 # CHANGELOG for EnvCloak
 
+## *[0.2.1]* & *[0.2.0]* - 2024-11-27
+> First of Beta release
+### Added
+- `sha3` generation for encrypted files.
+- `sha3` validation during decryption.
+- Implement version check during runtime. (Thanks to @Ishan-Jadhav)
+- Increased test coverage.
+- `--recursive` option for encrypting and decrypting.
+- Organized tests in modules.
+- Refactored main logic for modularization.
+- Removed "false-positive" vulnerabilities in `test`s suite.
+
 ## *[0.1.2]* - 2024-11-25
 ### Added
 - `--debug` flag for more verbose output, useful for error checking. (Thanks to @Ishan-Jadhav)
