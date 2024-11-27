@@ -47,7 +47,7 @@ def test_dir():
 
 
 @pytest.fixture
-def mock_files(test_dir):
+def mock_files(test_dir, read_variable):
     """
     Fixture for creating and managing mock files within the `tests/temp` directory.
     """
@@ -56,7 +56,7 @@ def mock_files(test_dir):
     encrypted_file = mock_dir / "variables.env.enc"
     decrypted_file = test_dir / "variables.env.decrypted"
     key_file = test_dir / "mykey.key"
-    password = "JustGiveItATry"
+    password = read_variable("pass1")
     salt = "e3a1c8b0d4f6e2c7a5b9d6f0c3e8f1a2"
 
     # Derive the key using the password and salt
@@ -64,3 +64,18 @@ def mock_files(test_dir):
     key_file.write_bytes(derived_key)
 
     return input_file, encrypted_file, decrypted_file, key_file
+
+
+@pytest.fixture
+def read_variable():
+    def _read_variable(identifier):
+        test_resources_dir = os.path.join(os.path.dirname(__file__), "resources")
+        variable_file = os.path.join(test_resources_dir, "input_variables")
+        with open(variable_file, "r") as f:
+            for line in f:
+                key, value = line.strip().split("=")
+                if key == identifier:
+                    return value
+        raise ValueError(f"Variable with identifier '{identifier}' not found")
+
+    return _read_variable

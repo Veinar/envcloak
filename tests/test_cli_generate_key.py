@@ -79,6 +79,7 @@ def test_generate_key_from_password_with_gitignore(
     mock_add_to_gitignore,
     runner,
     isolated_mock_files,
+    read_variable,
 ):
     """
     Test the `generate-key-from-password` CLI command with default behavior (adds to .gitignore).
@@ -91,7 +92,7 @@ def test_generate_key_from_password_with_gitignore(
     mock_generate_key_from_password_file.side_effect = mock_create_key_from_password
 
     temp_key_file = isolated_mock_files / "temp_password_key.key"  # Temporary key file
-    password = "JustGiveItATry"
+    password = read_variable("pass1")
     salt = "e3a1c8b0d4f6e2c7a5b9d6f0c3e8f1a2"
 
     # Run the CLI command
@@ -128,6 +129,7 @@ def test_generate_key_from_password_no_gitignore(
     mock_add_to_gitignore,
     runner,
     isolated_mock_files,
+    read_variable,
 ):
     """
     Test the `generate-key-from-password` CLI command with the `--no-gitignore` flag.
@@ -142,7 +144,7 @@ def test_generate_key_from_password_no_gitignore(
     # Use isolated mock files for the test
     temp_dir = isolated_mock_files
     temp_key_file = temp_dir / "temp_password_key.key"  # Temporary key file
-    password = "JustGiveItATry"
+    password = read_variable("pass1")
     salt = "e3a1c8b0d4f6e2c7a5b9d6f0c3e8f1a2"
 
     # Run the CLI command
@@ -174,7 +176,11 @@ def test_generate_key_from_password_no_gitignore(
 @patch("envcloak.generator.os.urandom")
 @patch("envcloak.generator.derive_key")
 def test_generate_key_from_password_random_salt(
-    mock_derive_key, mock_urandom, runner, isolated_mock_files
+    mock_derive_key,
+    mock_urandom,
+    runner,
+    isolated_mock_files,
+    read_variable,
 ):
     """
     Test the `generate-key-from-password` CLI command without providing a salt.
@@ -190,7 +196,7 @@ def test_generate_key_from_password_random_salt(
     mock_derive_key.return_value = expected_key
 
     temp_key_file = isolated_mock_files / "temp_password_key.key"
-    password = "SecurePassword"
+    password = read_variable("pass5")
 
     # Run the CLI command without a salt
     result = runner.invoke(
@@ -213,13 +219,17 @@ def test_generate_key_from_password_random_salt(
     mock_derive_key.assert_called_once_with(password, mock_salt)
 
 
-def test_generate_key_from_password_invalid_salt(runner, isolated_mock_files):
+def test_generate_key_from_password_invalid_salt(
+    runner,
+    isolated_mock_files,
+    read_variable,
+):
     """
     Test the `generate-key-from-password` CLI command with an invalid salt (not 32 hex characters).
     """
 
     temp_key_file = isolated_mock_files / "temp_password_key.key"
-    password = "SecurePassword"
+    password = read_variable("pass5")
     invalid_salt = "a1b2c3"  # Not 32 hex characters
 
     # Run the CLI command with an invalid salt
@@ -243,7 +253,10 @@ def test_generate_key_from_password_invalid_salt(runner, isolated_mock_files):
 
 @patch("envcloak.generator.derive_key")
 def test_generate_key_from_password_valid_salt(
-    mock_derive_key, runner, isolated_mock_files
+    mock_derive_key,
+    runner,
+    isolated_mock_files,
+    read_variable,
 ):
     """
     Test the `generate-key-from-password` CLI command with a valid salt.
@@ -255,7 +268,7 @@ def test_generate_key_from_password_valid_salt(
     mock_derive_key.return_value = expected_key
 
     temp_key_file = isolated_mock_files / "temp_password_key.key"
-    password = "SecurePassword"
+    password = read_variable("pass5")
     salt_hex = valid_salt.hex()
 
     # Run the CLI command with a valid salt
@@ -282,7 +295,10 @@ def test_generate_key_from_password_valid_salt(
 
 @patch("envcloak.generator.derive_key")
 def test_generate_key_from_password_file_creation(
-    mock_derive_key, runner, isolated_mock_files
+    mock_derive_key,
+    runner,
+    isolated_mock_files,
+    read_variable,
 ):
     """
     Test the `generate-key-from-password` CLI command ensures the output file is created.
@@ -295,7 +311,7 @@ def test_generate_key_from_password_file_creation(
     # Define a non-existent directory and file for the test
     temp_dir = isolated_mock_files / "non_existent_directory"
     temp_key_file = temp_dir / "temp_password_key.key"
-    password = "SecurePassword"
+    password = read_variable("pass5")
     salt = "a1b2c3d4e5f67890123456789abcdef0"
 
     # Run the CLI command

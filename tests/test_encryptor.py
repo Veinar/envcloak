@@ -24,22 +24,22 @@ def test_generate_salt():
     assert isinstance(salt, bytes)
 
 
-def test_derive_key():
+def test_derive_key(read_variable):
     """
     Test that derive_key produces a key of the correct size.
     """
-    password = "test_password"
+    password = read_variable("pass6")
     salt = generate_salt()
     key = derive_key(password, salt)
     assert len(key) == KEY_SIZE
     assert isinstance(key, bytes)
 
 
-def test_derive_key_invalid_salt():
+def test_derive_key_invalid_salt(read_variable):
     """
     Test that derive_key raises an InvalidSaltException for invalid salt sizes.
     """
-    password = "test_password"
+    password = read_variable("pass6")
     invalid_salt = os.urandom(SALT_SIZE - 1)  # Smaller than expected
     with pytest.raises(
         InvalidSaltException,
