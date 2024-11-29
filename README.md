@@ -57,6 +57,9 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" --output 
 # From random password and salt
 envcloak generate-key --output secretkey.key
 ```
+
+![generate-key-gif](https://veinar.pl/envcloak-generate-key.gif)
+
 > **What it does:** generates your private key used to encrypt and decrypt files. **Appends (or creates if needed) .gitignore as well** as super-hero should! 🎉
 
 > ⚠ **If someone knows your password and salt (option 1) can recreate same `key` - keep those variables safe as `key` itself** ⚠
@@ -66,6 +69,9 @@ envcloak generate-key --output secretkey.key
 ```bash
 envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```
+
+![encrypt-gif](https://veinar.pl/envcloak-encrypt.gif)
+
 > **What it does:** Encrypts your `.env` file with a specified key, outputting a sparkling `.env.enc` file.
 
 ### Decrypting Variables:
@@ -73,6 +79,9 @@ envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```bash
 envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 ```
+
+![decrypt-gif](https://veinar.pl/envcloak-decrypt.gif)
+
 > **What it does:** Decrypts the `.env.enc` file back to `.env` using the same key. Voilà!
 
 or you may want to use it ...
