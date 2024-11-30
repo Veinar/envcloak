@@ -129,7 +129,7 @@ def encrypt(
 
         # Handle overwrite with --force
         debug_log(
-            f"Debug: Handling overwrite logic with force flag set to {force}", debug
+            f"Debug: Handling overwrite logic with force flag set to {force}.", debug
         )
         if not force:
             check_output_not_exists(output)

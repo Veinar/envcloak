@@ -9,6 +9,7 @@
 
 ![GitHub License](https://img.shields.io/github/license/Veinar/envcloak)
 ![Contrib Welcome](https://img.shields.io/badge/contributions-welcome-blue)
+![Looking for](https://img.shields.io/badge/looking%20for-maintainers-228B22)
 ![Code style](https://img.shields.io/badge/code%20style-black-black)
 ![CI/CD Pipeline](https://github.com/Veinar/envcloak/actions/workflows/test.yaml/badge.svg)
 ![Build Pipeline](https://github.com/Veinar/envcloak/actions/workflows/build.yaml/badge.svg)
