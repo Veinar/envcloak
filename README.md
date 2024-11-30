@@ -114,6 +114,7 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 * Works with directories using `--directory` instead of `--input` on `encrypt` and `decrypt`.
 > ℹ️ EnvCloak process files in batch one-by-one. 
 * Can [recursively](docs/recursive.md) encrypt or decrypt directories.
+* Can list files in directory that will be encrypted using `--preview` flag (ℹ️ only for directories and it does not commit the operation!).
 
 🚦 Error Handling
 
