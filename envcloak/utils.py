@@ -1,6 +1,7 @@
 import os
 import hashlib
 from pathlib import Path
+import click
 
 
 def add_to_gitignore(directory: str, filename: str):
@@ -49,6 +50,29 @@ def calculate_required_space(input=None, directory=None):
         return total_size
 
     return 0
+
+
+def list_files_to_encrypt(directory, recursion):
+    """
+    List files in a directory that would be encrypted.
+
+    :param directory: Path to the directory to scan.
+    :param recursion: Whether to scan directories recursively.
+    :return: List of file paths.
+    """
+    path = Path(directory)
+    if not path.is_dir():
+        raise click.UsageError(f"The specified path {directory} is not a directory.")
+
+    files = []
+    if recursion:
+        files = list(path.rglob("*"))  # Recursive glob
+    else:
+        files = list(path.glob("*"))  # Non-recursive glob
+
+    # Filter only files
+    files = [str(f) for f in files if f.is_file()]
+    return files
 
 
 def debug_log(message, debug):

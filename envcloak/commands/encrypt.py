@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 import click
 from click import style
-from envcloak.utils import debug_log, calculate_required_space
+from envcloak.utils import debug_log, calculate_required_space, list_files_to_encrypt
 from envcloak.decorators.common_decorators import (
     debug_option,
     force_option,
@@ -49,7 +49,14 @@ from envcloak.exceptions import (
 @click.option(
     "--key-file", "-k", required=True, help="Path to the encryption key file."
 )
-def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion):
+@click.option(
+    "--preview",
+    is_flag=True,
+    help="List files that will be encrypted (only applicable for directories).",
+)
+def encrypt(
+    input, directory, output, key_file, dry_run, force, debug, recursion, preview
+):
     """
     Encrypt environment variables from a file or all files in a directory.
     """
@@ -58,17 +65,39 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion
         debug_log("Debug mode is enabled", debug)
 
         debug_log("Debug: Validating input and directory parameters.", debug)
-        # Always perform validation
         if not input and not directory:
             raise click.UsageError("You must provide either --input or --directory.")
         if input and directory:
             raise click.UsageError(
                 "You must provide either --input or --directory, not both."
             )
+
+        if input and preview:
+            raise click.UsageError(
+                "The --preview option cannot be used with a single file (--input)."
+            )
+
+        # Handle preview mode
+        if directory and preview:
+            debug_log("Debug: Listing files for preview.", debug)
+            files = list_files_to_encrypt(directory, recursion)
+            if not files:
+                click.echo(
+                    style(f"ℹ️ No files found in directory {directory}.", fg="blue")
+                )
+            else:
+                click.echo(
+                    style(
+                        f"ℹ️ Files to be encrypted in directory {directory}:", fg="green"
+                    )
+                )
+                for file in files:
+                    click.echo(file)
+            return
+
         # Determine output path for file encryption
         if input:
             if not output:
-                # Automatically create output file name with .enc suffix
                 output = f"{input}.enc"
                 click.echo(
                     style(
@@ -114,10 +143,10 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion
                 )
                 if os.path.isdir(output):
                     debug_log(f"Debug: Removing existing directory {output}.", debug)
-                    shutil.rmtree(output)  # Remove existing directory
+                    shutil.rmtree(output)
                 else:
                     debug_log(f"Debug: Removing existing file {output}.", debug)
-                    os.remove(output)  # Remove existing file
+                    os.remove(output)
 
         debug_log(
             f"Debug: Calculating required space for input {input} and output directory {directory}.",
