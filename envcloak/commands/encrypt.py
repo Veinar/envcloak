@@ -79,7 +79,9 @@ def encrypt(
 
         # Handle preview mode
         if directory and preview:
-            debug_log("Debug: Listing files for preview.", debug)
+            debug_log(
+                f"Debug: Listing files for preview. Recursive = {recursion}.", debug
+            )
             files = list_files_to_encrypt(directory, recursion)
             if not files:
                 click.echo(
@@ -126,7 +128,9 @@ def encrypt(
         check_permissions(key_file)
 
         # Handle overwrite with --force
-        debug_log("Debug: Handling overwrite logic with force flag.", debug)
+        debug_log(
+            f"Debug: Handling overwrite logic with force flag set to {force}", debug
+        )
         if not force:
             check_output_not_exists(output)
         else:
