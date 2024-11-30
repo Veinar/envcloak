@@ -129,16 +129,10 @@ def encrypt_file(input_file: str, output_file: str, key: bytes):
 
         # Compute hash of plaintext for integrity
         encrypted_data["sha"] = compute_sha256(data)
-        # print(
-        #    f"Debug: SHA-256 hash of plaintext during encryption: {encrypted_data['sha']}"
-        # )
 
         # Compute hash of the entire encrypted structure
         file_hash = compute_sha256(json.dumps(encrypted_data, ensure_ascii=False))
         encrypted_data["file_sha"] = file_hash  # Store this hash in the structure
-        # print(
-        #    f"Debug: SHA-256 hash of encrypted structure (file_sha): {encrypted_data['file_sha']}"
-        # )
 
         with open(output_file, "w", encoding="utf-8") as outfile:
             json.dump(encrypted_data, outfile, ensure_ascii=False)
