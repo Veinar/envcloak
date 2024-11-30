@@ -43,7 +43,7 @@ from envcloak.exceptions import (
 @click.option(
     "--output",
     "-o",
-    required=True,
+    required=False,
     help="Path to the output file or directory for encrypted files.",
 )
 @click.option(
@@ -54,7 +54,7 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion
     Encrypt environment variables from a file or all files in a directory.
     """
     try:
-        # debug mode
+        # Debug mode
         debug_log("Debug mode is enabled", debug)
 
         debug_log("Debug: Validating input and directory parameters.", debug)
@@ -65,14 +65,33 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion
             raise click.UsageError(
                 "You must provide either --input or --directory, not both."
             )
+        # Determine output path for file encryption
         if input:
+            if not output:
+                # Automatically create output file name with .enc suffix
+                output = f"{input}.enc"
+                click.echo(
+                    style(
+                        f"ℹ️ No output provided, output file name automatically set to {output}!",
+                        fg="blue",
+                    )
+                )
             debug_log(f"Debug: Validating input file {input}.", debug)
             check_file_exists(input)
             check_permissions(input)
         if directory:
+            if not output:
+                debug_log(
+                    "Debug: Cannot set default file name if directory is specified as an input.",
+                    debug,
+                )
+                raise click.UsageError(
+                    "When processing a directory, the --output parameter is required."
+                )
             debug_log(f"Debug: Validating directory {directory}.", debug)
             check_directory_exists(directory)
             check_directory_not_empty(directory)
+
         debug_log(f"Debug: Validating key file {key_file}.", debug)
         check_file_exists(key_file)
         check_permissions(key_file)
@@ -128,6 +147,7 @@ def encrypt(input, directory, output, key_file, dry_run, force, debug, recursion
             encrypt_file(input, output, key)
             click.echo(f"File {input} encrypted -> {output} using key {key_file}")
         elif directory:
+            debug_log(f"Debug: Encrypting files in directory {directory}.", debug)
             traverse_and_process_files(
                 directory,
                 output,
