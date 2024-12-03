@@ -3,7 +3,13 @@ import shutil
 from pathlib import Path
 import click
 from click import style
-from envcloak.utils import debug_log, calculate_required_space, list_files_to_encrypt
+from envcloak.utils import (
+    debug_log,
+    calculate_required_space,
+    list_files_to_encrypt,
+    handle_overwrite,
+    validate_paths,
+)
 from envcloak.decorators.common_decorators import (
     debug_option,
     force_option,
@@ -11,11 +17,6 @@ from envcloak.decorators.common_decorators import (
     recursion,
 )
 from envcloak.validation import (
-    check_file_exists,
-    check_directory_exists,
-    check_directory_not_empty,
-    check_output_not_exists,
-    check_permissions,
     check_disk_space,
 )
 from envcloak.encryptor import encrypt_file, traverse_and_process_files
@@ -64,20 +65,13 @@ def encrypt(
         # Debug mode
         debug_log("Debug mode is enabled", debug)
 
-        debug_log("Debug: Validating input and directory parameters.", debug)
-        if not input and not directory:
-            raise click.UsageError("You must provide either --input or --directory.")
-        if input and directory:
-            raise click.UsageError(
-                "You must provide either --input or --directory, not both."
-            )
-
+        # Raise error if --preview is used with --input
         if input and preview:
             raise click.UsageError(
                 "The --preview option cannot be used with a single file (--input)."
             )
 
-        # Handle preview mode
+        # Handle preview mode for directories
         if directory and preview:
             debug_log(
                 f"Debug: Listing files for preview. Recursive = {recursion}.", debug
@@ -87,6 +81,7 @@ def encrypt(
                 click.echo(
                     style(f"ℹ️ No files found in directory {directory}.", fg="blue")
                 )
+                return
             else:
                 click.echo(
                     style(
@@ -95,67 +90,17 @@ def encrypt(
                 )
                 for file in files:
                     click.echo(file)
-            return
+                return  # Exit early after preview
 
-        # Determine output path for file encryption
+        # Validate input, directory, key file, and output
+        validate_paths(input=input, directory=directory, key_file=key_file, debug=debug)
+
         if input:
-            if not output:
-                output = f"{input}.enc"
-                click.echo(
-                    style(
-                        f"ℹ️ No output provided, output file name automatically set to {output}!",
-                        fg="blue",
-                    )
-                )
-            debug_log(f"Debug: Validating input file {input}.", debug)
-            check_file_exists(input)
-            check_permissions(input)
-        if directory:
-            if not output:
-                debug_log(
-                    "Debug: Cannot set default file name if directory is specified as an input.",
-                    debug,
-                )
-                raise click.UsageError(
-                    "When processing a directory, the --output parameter is required."
-                )
-            debug_log(f"Debug: Validating directory {directory}.", debug)
-            check_directory_exists(directory)
-            check_directory_not_empty(directory)
+            output = output or f"{input}.enc"
+            debug_log(f"Debug: Output set to {output}.", debug)
 
-        debug_log(f"Debug: Validating key file {key_file}.", debug)
-        check_file_exists(key_file)
-        check_permissions(key_file)
+        handle_overwrite(output, force, debug)
 
-        # Handle overwrite with --force
-        debug_log(
-            f"Debug: Handling overwrite logic with force flag set to {force}.", debug
-        )
-        if not force:
-            check_output_not_exists(output)
-        else:
-            if os.path.exists(output):
-                debug_log(
-                    f"Debug: File or directory {output} exists, proceeding with overwrite.",
-                    debug,
-                )
-                click.echo(
-                    style(
-                        f"⚠️  Warning: Overwriting existing file or directory {output} (--force used).",
-                        fg="yellow",
-                    )
-                )
-                if os.path.isdir(output):
-                    debug_log(f"Debug: Removing existing directory {output}.", debug)
-                    shutil.rmtree(output)
-                else:
-                    debug_log(f"Debug: Removing existing file {output}.", debug)
-                    os.remove(output)
-
-        debug_log(
-            f"Debug: Calculating required space for input {input} and output directory {directory}.",
-            debug,
-        )
         required_space = calculate_required_space(input, directory)
         check_disk_space(output, required_space)
 
@@ -167,7 +112,6 @@ def encrypt(
             click.echo("Dry-run checks passed successfully.")
             return
 
-        # Actual encryption logic
         with open(key_file, "rb") as kf:
             key = kf.read()
             debug_log(f"Debug: Key file {key_file} read successfully.", debug)
@@ -193,9 +137,23 @@ def encrypt(
                 recursion=recursion,
             )
             click.echo(f"All files in directory {directory} encrypted -> {output}")
-    except (
-        OutputFileExistsException,
-        DiskSpaceException,
-        FileEncryptionException,
-    ) as e:
-        click.echo(f"Error during encryption: {str(e)}")
+    except OutputFileExistsException as e:
+        click.echo(
+            f"Error: The specified output file or directory already exists.\nDetails: {e}",
+            err=True,
+        )
+    except DiskSpaceException as e:
+        click.echo(
+            f"Error: Insufficient disk space for operation.\nDetails: {e}",
+            err=True,
+        )
+    except FileEncryptionException as e:
+        click.echo(
+            f"Error: An error occurred during file encryption.\nDetails: {e}",
+            err=True,
+        )
+    except click.UsageError as e:
+        click.echo(f"Usage Error: {e}", err=True)
+    except Exception as e:
+        debug_log(f"Unexpected error occurred: {str(e)}", debug)
+        raise

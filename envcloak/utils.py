@@ -1,7 +1,15 @@
 import os
 import hashlib
+import shutil
 from pathlib import Path
 import click
+from envcloak.validation import (
+    check_output_not_exists,
+    check_file_exists,
+    check_directory_exists,
+    check_permissions,
+    check_directory_not_empty,
+)
 
 
 def add_to_gitignore(directory: str, filename: str):
@@ -73,6 +81,46 @@ def list_files_to_encrypt(directory, recursion):
     # Filter only files
     files = [str(f) for f in files if f.is_file()]
     return files
+
+
+def handle_overwrite(output: str, force: bool, debug: bool):
+    """Handle overwriting existing files or directories."""
+    if not force:
+        check_output_not_exists(output)
+    else:
+        if os.path.exists(output):
+            if os.path.isdir(output):
+                debug_log(f"Debug: Removing existing directory {output}.", debug)
+                click.secho(
+                    f"⚠️  Warning: Overwriting existing directory {output} (--force used).",
+                    fg="yellow",
+                )
+                shutil.rmtree(output)
+            else:
+                debug_log(f"Debug: Removing existing file {output}.", debug)
+                click.secho(
+                    f"⚠️  Warning: Overwriting existing file {output} (--force used).",
+                    fg="yellow",
+                )
+                os.remove(output)
+
+
+def validate_paths(input=None, directory=None, key_file=None, output=None, debug=False):
+    """Perform validation for common parameters."""
+    if input and directory:
+        raise click.UsageError(
+            "You must provide either --input or --directory, not both."
+        )
+    if not input and not directory:
+        raise click.UsageError("You must provide either --input or --directory.")
+    if key_file:
+        debug_log(f"Debug: Validating key file {key_file}.", debug)
+        check_file_exists(key_file)
+        check_permissions(key_file)
+    if directory:
+        debug_log(f"Debug: Validating directory {directory}.", debug)
+        check_directory_exists(directory)
+        check_directory_not_empty(directory)
 
 
 def debug_log(message, debug):
