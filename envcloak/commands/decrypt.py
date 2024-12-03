@@ -5,7 +5,6 @@ This module provides logic for decrypt command of EnvCloak
 """
 
 import click
-from click import style
 from envcloak.utils import (
     debug_log,
     calculate_required_space,
