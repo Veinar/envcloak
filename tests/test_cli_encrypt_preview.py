@@ -19,7 +19,7 @@ def test_preview_with_directory(runner, isolated_mock_files):
         ],
     )
     assert result.exit_code == 0, f"Command failed with output: {result.output}"
-    assert "Files to be encrypted in directory" in result.output
+    assert "Files to be processed in directory" in result.output
 
 
 def test_preview_with_single_file_error(runner, isolated_mock_files):

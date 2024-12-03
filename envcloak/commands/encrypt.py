@@ -9,6 +9,7 @@ from envcloak.utils import (
     list_files_to_encrypt,
     handle_overwrite,
     validate_paths,
+    handle_directory_preview,
 )
 from envcloak.decorators.common_decorators import (
     debug_option,
@@ -73,24 +74,8 @@ def encrypt(
 
         # Handle preview mode for directories
         if directory and preview:
-            debug_log(
-                f"Debug: Listing files for preview. Recursive = {recursion}.", debug
-            )
-            files = list_files_to_encrypt(directory, recursion)
-            if not files:
-                click.echo(
-                    style(f"ℹ️ No files found in directory {directory}.", fg="blue")
-                )
-                return
-            else:
-                click.echo(
-                    style(
-                        f"ℹ️ Files to be encrypted in directory {directory}:", fg="green"
-                    )
-                )
-                for file in files:
-                    click.echo(file)
-                return  # Exit early after preview
+            handle_directory_preview(directory, recursion, debug, list_files_to_encrypt)
+            return
 
         # Validate input, directory, key file, and output
         validate_paths(input=input, directory=directory, key_file=key_file, debug=debug)

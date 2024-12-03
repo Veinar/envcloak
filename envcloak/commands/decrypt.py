@@ -8,6 +8,7 @@ from envcloak.utils import (
     calculate_required_space,
     handle_overwrite,
     list_files_to_encrypt,
+    handle_directory_preview,
 )
 from envcloak.decorators.common_decorators import (
     debug_option,
@@ -90,24 +91,8 @@ def decrypt(
             )
 
         if directory and preview:
-            debug_log(
-                f"Debug: Listing files for preview. Recursive = {recursion}.", debug
-            )
-            files = list_files_to_encrypt(directory, recursion)
-            if not files:
-                click.echo(
-                    style(f"ℹ️ No files found in directory {directory}.", fg="blue")
-                )
-                return
-            else:
-                click.echo(
-                    style(
-                        f"ℹ️ Files to be decrypted in directory {directory}:", fg="green"
-                    )
-                )
-                for file in files:
-                    click.echo(file)
-                return
+            handle_directory_preview(directory, recursion, debug, list_files_to_encrypt)
+            return
 
         debug_log(f"Debug: Validating key file {key_file}.", debug)
         check_file_exists(key_file)

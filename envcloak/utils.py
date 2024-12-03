@@ -104,6 +104,24 @@ def handle_overwrite(output: str, force: bool, debug: bool):
                 )
                 os.remove(output)
 
+def handle_directory_preview(directory, recursion, debug, list_files_func):
+    """
+    Handles listing files in a directory for preview purposes.
+
+    :param directory: Path to the directory.
+    :param recursion: Whether to include files recursively.
+    :param debug: Debug flag for verbose logging.
+    :param list_files_func: Function to list files in the directory.
+    """
+    debug_log(f"Debug: Listing files for preview. Recursive = {recursion}.", debug)
+    files = list_files_func(directory, recursion)
+    if not files:
+        click.secho(f"ℹ️ No files found in directory {directory}.", fg="blue")
+    else:
+        click.secho(f"ℹ️ Files to be processed in directory {directory}:", fg="green")
+        for file in files:
+            click.echo(file)
+    return files
 
 def validate_paths(input=None, directory=None, key_file=None, output=None, debug=False):
     """Perform validation for common parameters."""

@@ -63,7 +63,7 @@ Preview of Key Rotation:
                 fg="cyan",
             )
             return
-        elif dry_run:
+        if dry_run:
             click.echo("Dry-run checks passed successfully.")
             return
 
