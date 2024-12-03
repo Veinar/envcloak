@@ -61,7 +61,9 @@ def recursion(func):
 
 
 def preview_option(func):
-    """ """
+    """
+    Add `--preview` flag to a Click command.
+    """
     return click.option(
         "--preview",
         is_flag=True,

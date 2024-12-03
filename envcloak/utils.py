@@ -129,6 +129,16 @@ def compute_sha256(data: str) -> str:
 
 
 def read_key_file(key_file, debug):
+    """
+    Reads a cryptographic key from a file and logs the operation if debugging is enabled.
+
+    Args:
+        key_file (str or Path): The path to the file containing the cryptographic key.
+        debug (bool): If True, logs debugging information about the operation.
+
+    Returns:
+        bytes: The binary content of the key file.
+    """
     with open(key_file, "rb") as kf:
         key = kf.read()
         debug_log(f"Debug: Key file {key_file} read successfully.", debug)
