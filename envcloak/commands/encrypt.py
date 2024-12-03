@@ -3,6 +3,7 @@ encrypt.py
 
 This module provides logic for encrypt command of EnvCloak
 """
+
 import click
 from envcloak.utils import (
     debug_log,

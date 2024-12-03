@@ -4,6 +4,7 @@ version_check.py
 This module includes functionality to check for the latest version of the `envcloak` package on PyPI.
 It helps users stay updated with the newest features, enhancements, and fixes.
 """
+
 import requests
 import click
 from packaging.version import Version, InvalidVersion

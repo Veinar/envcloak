@@ -3,6 +3,7 @@ rotate_keys.py
 
 This module provides logic for key rotating using EnvCloak command.
 """
+
 import os
 import click
 from envcloak.utils import debug_log

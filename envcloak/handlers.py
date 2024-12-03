@@ -4,6 +4,7 @@ handlers.py
 This module defines handlers for processing application events, errors with/without logging.
 It facilitates seamless interaction between components and ensures proper error handling.
 """
+
 import os
 import shutil
 import click
@@ -52,6 +53,7 @@ def handle_directory_preview(directory, recursion, debug, list_files_func):
         for file in files:
             click.echo(file)
     return files
+
 
 def handle_common_exceptions(exception, debug):
     """

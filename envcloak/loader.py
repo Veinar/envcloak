@@ -4,6 +4,7 @@ loader.py
 This module manages the loading of encrypted environment variables for usage in Python code as imported function.
 It decrypts and validates sensitive information and loads it in to OS env if requested.
 """
+
 import os
 import json
 from pathlib import Path

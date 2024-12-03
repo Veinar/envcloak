@@ -4,6 +4,7 @@ comparator.py
 This module contains utilities for comparing files, directories, or cryptographic properties.
 It ensures integrity and helps detect discrepancies in encrypted data.
 """
+
 import os
 import tempfile
 from pathlib import Path

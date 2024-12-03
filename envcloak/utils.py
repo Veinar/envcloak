@@ -4,6 +4,7 @@ utils.py
 This module provides helper functions and common utilities to support various operations
 in the `envcloak` package, such as logging, checksum calculation, and general-purpose tools.
 """
+
 import os
 import hashlib
 from pathlib import Path

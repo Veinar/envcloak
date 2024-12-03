@@ -3,6 +3,7 @@ generate_key.py
 
 This module provides logic for key generation via command of EnvCloak
 """
+
 from pathlib import Path
 import click
 from envcloak.validation import check_output_not_exists, check_disk_space

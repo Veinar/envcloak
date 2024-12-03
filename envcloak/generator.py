@@ -4,6 +4,7 @@ generator.py
 This module provides utilities for generating cryptographic keys and passwords.
 It ensures secure and reliable key generation for encryption and decryption tasks.
 """
+
 # import secrets # TODO: implement this
 import os
 from pathlib import Path
