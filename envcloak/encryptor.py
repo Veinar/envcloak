@@ -236,7 +236,11 @@ def traverse_and_process_files(
             target_path = output_dir / relative_path
             target_path.parent.mkdir(parents=True, exist_ok=True)
 
+            output_file = str(target_path)
+            if output_file.endswith(".enc"):
+                output_file = output_file[:-4]  # Explicitly handle `.enc`
+
             if not dry_run:
-                process_file(file_path, target_path, key, debug)
+                process_file(file_path, output_file, key, debug)
             else:
-                debug_log(f"Dry-run: Would process {file_path} -> {target_path}", debug)
+                debug_log(f"Dry-run: Would process {file_path} -> {output_file}", debug)
