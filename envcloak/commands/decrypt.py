@@ -22,7 +22,7 @@ from envcloak.decorators.common_decorators import (
     dry_run_option,
     force_option,
     no_sha_validation_option,
-    recursion,
+    recursion_option,
     preview_option,
 )
 from envcloak.validation import (
@@ -43,7 +43,7 @@ from envcloak.exceptions import (
 @dry_run_option
 @force_option
 @no_sha_validation_option
-@recursion
+@recursion_option
 @preview_option
 @click.option(
     "--input",

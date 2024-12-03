@@ -48,7 +48,7 @@ def no_sha_validation_option(func):
     )(func)
 
 
-def recursion(func):
+def recursion_option(func):
     """
     Add `--recursion` and `-r` flags to a Click command.
     """

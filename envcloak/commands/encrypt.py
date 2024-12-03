@@ -21,7 +21,7 @@ from envcloak.decorators.common_decorators import (
     debug_option,
     force_option,
     dry_run_option,
-    recursion,
+    recursion_option,
     preview_option,
 )
 from envcloak.validation import (
@@ -37,7 +37,7 @@ from envcloak.exceptions import (
 @debug_option
 @dry_run_option
 @force_option
-@recursion
+@recursion_option
 @preview_option
 @click.option(
     "--input", "-i", required=False, help="Path to the input file (e.g., .env)."
