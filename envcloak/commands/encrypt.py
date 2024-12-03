@@ -1,29 +1,33 @@
-import os
-import shutil
-from pathlib import Path
+"""
+encrypt.py
+
+This module provides logic for encrypt command of EnvCloak
+"""
 import click
-from click import style
 from envcloak.utils import (
     debug_log,
     calculate_required_space,
     list_files_to_encrypt,
-    handle_overwrite,
     validate_paths,
+    read_key_file,
+)
+from envcloak.handlers import (
     handle_directory_preview,
+    handle_overwrite,
+    handle_common_exceptions,
 )
 from envcloak.decorators.common_decorators import (
     debug_option,
     force_option,
     dry_run_option,
     recursion,
+    preview_option,
 )
 from envcloak.validation import (
     check_disk_space,
 )
 from envcloak.encryptor import encrypt_file, traverse_and_process_files
 from envcloak.exceptions import (
-    OutputFileExistsException,
-    DiskSpaceException,
     FileEncryptionException,
 )
 
@@ -33,6 +37,7 @@ from envcloak.exceptions import (
 @dry_run_option
 @force_option
 @recursion
+@preview_option
 @click.option(
     "--input", "-i", required=False, help="Path to the input file (e.g., .env)."
 )
@@ -50,11 +55,6 @@ from envcloak.exceptions import (
 )
 @click.option(
     "--key-file", "-k", required=True, help="Path to the encryption key file."
-)
-@click.option(
-    "--preview",
-    is_flag=True,
-    help="List files that will be encrypted (only applicable for directories).",
 )
 def encrypt(
     input, directory, output, key_file, dry_run, force, debug, recursion, preview
@@ -97,9 +97,7 @@ def encrypt(
             click.echo("Dry-run checks passed successfully.")
             return
 
-        with open(key_file, "rb") as kf:
-            key = kf.read()
-            debug_log(f"Debug: Key file {key_file} read successfully.", debug)
+        key = read_key_file(key_file, debug)
 
         if input:
             debug_log(
@@ -122,16 +120,6 @@ def encrypt(
                 recursion=recursion,
             )
             click.echo(f"All files in directory {directory} encrypted -> {output}")
-    except OutputFileExistsException as e:
-        click.echo(
-            f"Error: The specified output file or directory already exists.\nDetails: {e}",
-            err=True,
-        )
-    except DiskSpaceException as e:
-        click.echo(
-            f"Error: Insufficient disk space for operation.\nDetails: {e}",
-            err=True,
-        )
     except FileEncryptionException as e:
         click.echo(
             f"Error: An error occurred during file encryption.\nDetails: {e}",
@@ -140,5 +128,5 @@ def encrypt(
     except click.UsageError as e:
         click.echo(f"Usage Error: {e}", err=True)
     except Exception as e:
-        debug_log(f"Unexpected error occurred: {str(e)}", debug)
+        handle_common_exceptions(e, debug)
         raise

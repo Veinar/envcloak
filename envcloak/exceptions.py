@@ -1,3 +1,9 @@
+"""
+exceptions.py
+
+This module defines custom exception classes for handling errors specific to the `envcloak` package.
+It enhances error reporting with meaningful context, aiding debugging and user feedback.
+"""
 #### EncryptedEnvLoader Exceptions
 class EncryptedEnvLoaderException(Exception):
     """Base exception for EncryptedEnvLoader errors."""

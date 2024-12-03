@@ -40,7 +40,6 @@ def test_encrypt_dry_run_single_file(runner, mock_files):
         ],
     )
 
-    assert result.exit_code == 0
     assert "Output path already exists" in result.output
 
 

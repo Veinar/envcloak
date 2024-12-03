@@ -1,10 +1,14 @@
+"""
+utils.py
+
+This module provides helper functions and common utilities to support various operations
+in the `envcloak` package, such as logging, checksum calculation, and general-purpose tools.
+"""
 import os
 import hashlib
-import shutil
 from pathlib import Path
 import click
 from envcloak.validation import (
-    check_output_not_exists,
     check_file_exists,
     check_directory_exists,
     check_permissions,
@@ -83,46 +87,6 @@ def list_files_to_encrypt(directory, recursion):
     return files
 
 
-def handle_overwrite(output: str, force: bool, debug: bool):
-    """Handle overwriting existing files or directories."""
-    if not force:
-        check_output_not_exists(output)
-    else:
-        if os.path.exists(output):
-            if os.path.isdir(output):
-                debug_log(f"Debug: Removing existing directory {output}.", debug)
-                click.secho(
-                    f"⚠️  Warning: Overwriting existing directory {output} (--force used).",
-                    fg="yellow",
-                )
-                shutil.rmtree(output)
-            else:
-                debug_log(f"Debug: Removing existing file {output}.", debug)
-                click.secho(
-                    f"⚠️  Warning: Overwriting existing file {output} (--force used).",
-                    fg="yellow",
-                )
-                os.remove(output)
-
-def handle_directory_preview(directory, recursion, debug, list_files_func):
-    """
-    Handles listing files in a directory for preview purposes.
-
-    :param directory: Path to the directory.
-    :param recursion: Whether to include files recursively.
-    :param debug: Debug flag for verbose logging.
-    :param list_files_func: Function to list files in the directory.
-    """
-    debug_log(f"Debug: Listing files for preview. Recursive = {recursion}.", debug)
-    files = list_files_func(directory, recursion)
-    if not files:
-        click.secho(f"ℹ️ No files found in directory {directory}.", fg="blue")
-    else:
-        click.secho(f"ℹ️ Files to be processed in directory {directory}:", fg="green")
-        for file in files:
-            click.echo(file)
-    return files
-
 def validate_paths(input=None, directory=None, key_file=None, output=None, debug=False):
     """Perform validation for common parameters."""
     if input and directory:
@@ -161,3 +125,10 @@ def compute_sha256(data: str) -> str:
     :return: SHA-256 hash as a hex string.
     """
     return hashlib.sha3_256(data.encode()).hexdigest()
+
+
+def read_key_file(key_file, debug):
+    with open(key_file, "rb") as kf:
+        key = kf.read()
+        debug_log(f"Debug: Key file {key_file} read successfully.", debug)
+        return key

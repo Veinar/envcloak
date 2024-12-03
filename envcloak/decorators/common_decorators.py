@@ -1,3 +1,8 @@
+"""
+common_decorators.py
+
+This module provides Click options that are common across multiple commands
+"""
 import click
 
 
@@ -52,3 +57,12 @@ def recursion(func):
         is_flag=True,
         help="Enable recursion to process files in subdirectories.",
     )(func)
+
+
+def preview_option(func):
+    """
+    """
+    return click.option(
+        "--preview",
+        is_flag=True,
+        help="List files that will be decrypted (only applicable for directories).",)(func)

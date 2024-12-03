@@ -1,3 +1,9 @@
+"""
+encryptor.py
+
+This module implements core functionality for encrypting and decrypting files.
+It handles file traversal, key management, and cryptographic operations to ensure secure data handling.
+"""
 import os
 import base64
 import json

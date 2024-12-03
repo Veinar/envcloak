@@ -1,14 +1,20 @@
-import os
-import shutil
-from pathlib import Path
+"""
+decrypt.py
+
+This module provides logic for decrypt command of EnvCloak
+"""
 import click
 from click import style
 from envcloak.utils import (
     debug_log,
     calculate_required_space,
-    handle_overwrite,
     list_files_to_encrypt,
+    read_key_file,
+)
+from envcloak.handlers import (
     handle_directory_preview,
+    handle_overwrite,
+    handle_common_exceptions,
 )
 from envcloak.decorators.common_decorators import (
     debug_option,
@@ -16,19 +22,17 @@ from envcloak.decorators.common_decorators import (
     force_option,
     no_sha_validation_option,
     recursion,
+    preview_option,
 )
 from envcloak.validation import (
     check_file_exists,
     check_directory_exists,
     check_directory_not_empty,
-    check_output_not_exists,
     check_permissions,
     check_disk_space,
 )
 from envcloak.encryptor import decrypt_file, traverse_and_process_files
 from envcloak.exceptions import (
-    OutputFileExistsException,
-    DiskSpaceException,
     FileDecryptionException,
 )
 
@@ -39,6 +43,7 @@ from envcloak.exceptions import (
 @force_option
 @no_sha_validation_option
 @recursion
+@preview_option
 @click.option(
     "--input",
     "-i",
@@ -59,11 +64,6 @@ from envcloak.exceptions import (
 )
 @click.option(
     "--key-file", "-k", required=True, help="Path to the decryption key file."
-)
-@click.option(
-    "--preview",
-    is_flag=True,
-    help="List files that will be decrypted (only applicable for directories).",
 )
 def decrypt(
     input,
@@ -121,9 +121,7 @@ def decrypt(
             click.echo("Dry-run checks passed successfully.")
             return
 
-        with open(key_file, "rb") as kf:
-            key = kf.read()
-            debug_log(f"Debug: Key file {key_file} read successfully.", debug)
+        key = read_key_file(key_file, debug)
 
         if input:
             debug_log(
@@ -142,23 +140,13 @@ def decrypt(
                 debug,
                 process_file=lambda src, dest, key, dbg: decrypt_file(
                     str(src),
-                    str(dest).replace(".enc", ""),  # Ensure `.enc` is removed
+                    str(dest).replace(".enc", ""),
                     key,
                     validate_integrity=not skip_sha_validation,
                 ),
                 recursion=recursion,
             )
             click.echo(f"All files in directory {directory} decrypted -> {output}")
-    except OutputFileExistsException as e:
-        click.echo(
-            f"Error: The specified output file or directory already exists.\nDetails: {e}",
-            err=True,
-        )
-    except DiskSpaceException as e:
-        click.echo(
-            f"Error: Insufficient disk space for operation.\nDetails: {e}",
-            err=True,
-        )
     except FileDecryptionException as e:
         click.echo(
             f"Error during decryption: Error: Failed to decrypt the file.\nDetails: {e.details}",
@@ -167,5 +155,5 @@ def decrypt(
     except click.UsageError as e:
         click.echo(f"Usage Error: {e}", err=True)
     except Exception as e:
-        debug_log(f"Unexpected error occurred: {str(e)}", debug)
+        handle_common_exceptions(e, debug)
         raise
