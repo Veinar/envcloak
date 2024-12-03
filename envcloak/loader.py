@@ -22,6 +22,9 @@ from envcloak.exceptions import (
 
 
 class EncryptedEnvLoader:
+    """
+    Class responsible for handling inside from code requests to decrypt env variables.
+    """
     def __init__(self, file_path: str, key_file: str):
         """
         Initialize the EncryptedEnvLoader with an encrypted file and key file.
