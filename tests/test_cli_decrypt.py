@@ -21,7 +21,9 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
     temp_decrypted_file = decrypted_file.with_name("variables.temp.decrypted")
 
     def mock_decrypt(input_path, output_path, key, validate_integrity=True):
-        print(f"mock_decrypt called with: {input_path}, {output_path}, {key}, {validate_integrity}")
+        print(
+            f"mock_decrypt called with: {input_path}, {output_path}, {key}, {validate_integrity}"
+        )
         assert os.path.exists(input_path), "Encrypted file does not exist"
         assert isinstance(
             validate_integrity, bool
