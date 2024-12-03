@@ -1,3 +1,10 @@
+"""
+cli.py
+
+This module defines the command-line interface for interacting with the `envcloak` package.
+It provides commands for encrypting, decrypting, and managing environment variables.
+"""
+
 import click
 from envcloak.commands.encrypt import encrypt
 from envcloak.commands.decrypt import decrypt

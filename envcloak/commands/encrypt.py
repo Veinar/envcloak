@@ -1,27 +1,34 @@
-import os
-import shutil
-from pathlib import Path
+"""
+encrypt.py
+
+This module provides logic for encrypt command of EnvCloak
+"""
+
 import click
-from click import style
-from envcloak.utils import debug_log, calculate_required_space, list_files_to_encrypt
+from envcloak.utils import (
+    debug_log,
+    calculate_required_space,
+    list_files_to_encrypt,
+    validate_paths,
+    read_key_file,
+)
+from envcloak.handlers import (
+    handle_directory_preview,
+    handle_overwrite,
+    handle_common_exceptions,
+)
 from envcloak.decorators.common_decorators import (
     debug_option,
     force_option,
     dry_run_option,
-    recursion,
+    recursion_option,
+    preview_option,
 )
 from envcloak.validation import (
-    check_file_exists,
-    check_directory_exists,
-    check_directory_not_empty,
-    check_output_not_exists,
-    check_permissions,
     check_disk_space,
 )
 from envcloak.encryptor import encrypt_file, traverse_and_process_files
 from envcloak.exceptions import (
-    OutputFileExistsException,
-    DiskSpaceException,
     FileEncryptionException,
 )
 
@@ -30,7 +37,8 @@ from envcloak.exceptions import (
 @debug_option
 @dry_run_option
 @force_option
-@recursion
+@recursion_option
+@preview_option
 @click.option(
     "--input", "-i", required=False, help="Path to the input file (e.g., .env)."
 )
@@ -49,11 +57,6 @@ from envcloak.exceptions import (
 @click.option(
     "--key-file", "-k", required=True, help="Path to the encryption key file."
 )
-@click.option(
-    "--preview",
-    is_flag=True,
-    help="List files that will be encrypted (only applicable for directories).",
-)
 def encrypt(
     input, directory, output, key_file, dry_run, force, debug, recursion, preview
 ):
@@ -64,98 +67,26 @@ def encrypt(
         # Debug mode
         debug_log("Debug mode is enabled", debug)
 
-        debug_log("Debug: Validating input and directory parameters.", debug)
-        if not input and not directory:
-            raise click.UsageError("You must provide either --input or --directory.")
-        if input and directory:
-            raise click.UsageError(
-                "You must provide either --input or --directory, not both."
-            )
-
+        # Raise error if --preview is used with --input
         if input and preview:
             raise click.UsageError(
                 "The --preview option cannot be used with a single file (--input)."
             )
 
-        # Handle preview mode
+        # Handle preview mode for directories
         if directory and preview:
-            debug_log(
-                f"Debug: Listing files for preview. Recursive = {recursion}.", debug
-            )
-            files = list_files_to_encrypt(directory, recursion)
-            if not files:
-                click.echo(
-                    style(f"ℹ️ No files found in directory {directory}.", fg="blue")
-                )
-            else:
-                click.echo(
-                    style(
-                        f"ℹ️ Files to be encrypted in directory {directory}:", fg="green"
-                    )
-                )
-                for file in files:
-                    click.echo(file)
+            handle_directory_preview(directory, recursion, debug, list_files_to_encrypt)
             return
 
-        # Determine output path for file encryption
+        # Validate input, directory, key file, and output
+        validate_paths(input=input, directory=directory, key_file=key_file, debug=debug)
+
         if input:
-            if not output:
-                output = f"{input}.enc"
-                click.echo(
-                    style(
-                        f"ℹ️ No output provided, output file name automatically set to {output}!",
-                        fg="blue",
-                    )
-                )
-            debug_log(f"Debug: Validating input file {input}.", debug)
-            check_file_exists(input)
-            check_permissions(input)
-        if directory:
-            if not output:
-                debug_log(
-                    "Debug: Cannot set default file name if directory is specified as an input.",
-                    debug,
-                )
-                raise click.UsageError(
-                    "When processing a directory, the --output parameter is required."
-                )
-            debug_log(f"Debug: Validating directory {directory}.", debug)
-            check_directory_exists(directory)
-            check_directory_not_empty(directory)
+            output = output or f"{input}.enc"
+            debug_log(f"Debug: Output set to {output}.", debug)
 
-        debug_log(f"Debug: Validating key file {key_file}.", debug)
-        check_file_exists(key_file)
-        check_permissions(key_file)
+        handle_overwrite(output, force, debug)
 
-        # Handle overwrite with --force
-        debug_log(
-            f"Debug: Handling overwrite logic with force flag set to {force}.", debug
-        )
-        if not force:
-            check_output_not_exists(output)
-        else:
-            if os.path.exists(output):
-                debug_log(
-                    f"Debug: File or directory {output} exists, proceeding with overwrite.",
-                    debug,
-                )
-                click.echo(
-                    style(
-                        f"⚠️  Warning: Overwriting existing file or directory {output} (--force used).",
-                        fg="yellow",
-                    )
-                )
-                if os.path.isdir(output):
-                    debug_log(f"Debug: Removing existing directory {output}.", debug)
-                    shutil.rmtree(output)
-                else:
-                    debug_log(f"Debug: Removing existing file {output}.", debug)
-                    os.remove(output)
-
-        debug_log(
-            f"Debug: Calculating required space for input {input} and output directory {directory}.",
-            debug,
-        )
         required_space = calculate_required_space(input, directory)
         check_disk_space(output, required_space)
 
@@ -167,10 +98,7 @@ def encrypt(
             click.echo("Dry-run checks passed successfully.")
             return
 
-        # Actual encryption logic
-        with open(key_file, "rb") as kf:
-            key = kf.read()
-            debug_log(f"Debug: Key file {key_file} read successfully.", debug)
+        key = read_key_file(key_file, debug)
 
         if input:
             debug_log(
@@ -193,9 +121,13 @@ def encrypt(
                 recursion=recursion,
             )
             click.echo(f"All files in directory {directory} encrypted -> {output}")
-    except (
-        OutputFileExistsException,
-        DiskSpaceException,
-        FileEncryptionException,
-    ) as e:
-        click.echo(f"Error during encryption: {str(e)}")
+    except FileEncryptionException as e:
+        click.echo(
+            f"Error: An error occurred during file encryption.\nDetails: {e}",
+            err=True,
+        )
+    except click.UsageError as e:
+        click.echo(f"Usage Error: {e}", err=True)
+    except Exception as e:
+        handle_common_exceptions(e, debug)
+        raise

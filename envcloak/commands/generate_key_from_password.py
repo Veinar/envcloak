@@ -1,3 +1,9 @@
+"""
+generate_key_from_password.py
+
+This module provides logic for generating key using password or password and salt via command of EnvCloak
+"""
+
 from pathlib import Path
 import click
 from envcloak.validation import check_output_not_exists, check_disk_space, validate_salt

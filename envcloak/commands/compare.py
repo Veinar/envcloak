@@ -1,3 +1,9 @@
+"""
+compare.py
+
+This module provides logic for compare command of EnvCloak
+"""
+
 import click
 from click import style
 from envcloak.comparator import compare_files_or_directories

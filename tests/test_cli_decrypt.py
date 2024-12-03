@@ -21,6 +21,9 @@ def test_decrypt(mock_decrypt_file, runner, mock_files):
     temp_decrypted_file = decrypted_file.with_name("variables.temp.decrypted")
 
     def mock_decrypt(input_path, output_path, key, validate_integrity=True):
+        print(
+            f"mock_decrypt called with: {input_path}, {output_path}, {key}, {validate_integrity}"
+        )
         assert os.path.exists(input_path), "Encrypted file does not exist"
         assert isinstance(
             validate_integrity, bool
@@ -144,26 +147,26 @@ def test_decrypt_with_force_directory(mock_decrypt_file, runner, isolated_mock_f
             "--force",
             "--recursion",  # Enable recursion
             "--skip-sha-validation",
+            "--debug",
         ],
     )
 
     # Check that output mentions overwriting existing files
-    assert "Overwriting existing file" in result.output
+    assert "Overwriting existing directory" in result.output
 
     # Verify that decrypt_file was called for each input file
     mock_decrypt_file.assert_any_call(
         str(directory / "file1.env.enc"),
         str(output_directory / "file1.env"),
         b"mock_key",
-        validate_integrity=False,  # Ensure the validate_integrity flag matches
+        validate_integrity=False,
     )
     mock_decrypt_file.assert_any_call(
         str(directory / "file2.env.enc"),
         str(output_directory / "file2.env"),
         b"mock_key",
-        validate_integrity=False,  # Ensure the validate_integrity flag matches
+        validate_integrity=False,
     )
-
     # Ensure the output is clean and correct
     assert (output_directory / "file1.env").read_text() == "decrypted content"
     assert (output_directory / "file2.env").read_text() == "decrypted content"

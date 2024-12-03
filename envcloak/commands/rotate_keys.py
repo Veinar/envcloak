@@ -1,3 +1,9 @@
+"""
+rotate_keys.py
+
+This module provides logic for key rotating using EnvCloak command.
+"""
+
 import os
 import click
 from envcloak.utils import debug_log
@@ -63,7 +69,7 @@ Preview of Key Rotation:
                 fg="cyan",
             )
             return
-        elif dry_run:
+        if dry_run:
             click.echo("Dry-run checks passed successfully.")
             return
 
