@@ -160,6 +160,9 @@ So go ahead—secure your `.env` like a boss. And remember, EnvCloak isn’t jus
 
 > **Key Differentiator for EnvCloak**: Focused specifically on Python developers and lightweight CI/CD needs, making it ideal for small to medium projects.
 
+## 🤔 What Do You Think?
+We’d love to hear your thoughts about EnvCloak! Open an [issue](https://github.com/Veinar/envcloak/issues) or join the conversation in [Discussions](https://github.com/Veinar/envcloak/discussions).
+
 ## 🌟  Hall of Fame
 
 A huge thanks to all our amazing contributors! 🎉
@@ -172,4 +175,4 @@ A huge thanks to all our amazing contributors! 🎉
 
 Don’t let your API keys end up in the wrong hands (or on Twitter). Grab EnvCloak now and start encrypting like a pro.
 
-Happy `env` Cloaking! 🕵️‍♂️
+Happy `env` (an many other file types) Cloaking! 🕵️‍♂️
