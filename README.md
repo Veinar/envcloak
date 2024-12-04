@@ -75,6 +75,8 @@ envcloak generate-key --output secretkey.key
 
 ### Encrypting Variables:
 
+> ⚠️ This tool allows to encrypt more `.env` is just an example! 😎
+
 ```bash
 envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```
