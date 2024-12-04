@@ -4,7 +4,7 @@
 </p>
 
 <p align="center" style="background-color:#FF0000; color:white; padding:10px; border-radius:8px; font-size:14px; line-height:1.5;">
-⚠️ <strong>IMPORTANT NOTE: EnvCloak is NOT Limited to .env Files!</strong><br> ⚠️
+⚠️ <strong>IMPORTANT NOTE: EnvCloak is NOT Limited to .env Files!</strong>⚠️<br> 
 EnvCloak was originally built to secure <b>.env</b> files, but it can encrypt and decrypt <strong>any file type</strong>.<br>
 Use it for <i>.json</i>, <i>.yaml</i>, <i>.txt</i>, <i>binary files</i>, or <i>any sensitive data.</i><br>
 <br>
