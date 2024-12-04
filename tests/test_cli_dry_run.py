@@ -8,7 +8,6 @@ from click.testing import CliRunner
 from envcloak.cli import main
 
 
-
 @pytest.fixture
 def mock_files(isolated_mock_files):
     """
