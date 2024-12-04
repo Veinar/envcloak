@@ -1,4 +1,5 @@
 import os
+import secrets
 import base64
 import json
 import pytest
@@ -40,7 +41,7 @@ def test_derive_key_invalid_salt(read_variable):
     Test that derive_key raises an InvalidSaltException for invalid salt sizes.
     """
     password = read_variable("pass6")
-    invalid_salt = os.urandom(SALT_SIZE - 1)  # Smaller than expected
+    invalid_salt = secrets.token_bytes(SALT_SIZE - 1)  # Smaller than expected
     with pytest.raises(
         InvalidSaltException,
         match=f"Expected salt of size {SALT_SIZE}, got {SALT_SIZE - 1} bytes.",
@@ -52,7 +53,7 @@ def test_encrypt_and_decrypt():
     """
     Test that encrypting and decrypting a string works as expected.
     """
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
     plaintext = "This is a test message."
 
     # Encrypt the data
@@ -70,8 +71,8 @@ def test_encrypt_and_decrypt_invalid_key():
     """
     Test that decrypting with an incorrect key raises an error.
     """
-    key = os.urandom(KEY_SIZE)
-    wrong_key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
+    wrong_key = secrets.token_bytes(KEY_SIZE)
     plaintext = "This is a test message."
 
     encrypted_data = encrypt(plaintext, key)
@@ -84,12 +85,12 @@ def test_encrypt_and_decrypt_invalid_data():
     """
     Test that decrypting with invalid encrypted data raises an error.
     """
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     invalid_data = {
         "ciphertext": base64.b64encode(b"invalid").decode(),
-        "nonce": base64.b64encode(os.urandom(NONCE_SIZE)).decode(),
-        "tag": base64.b64encode(os.urandom(16)).decode(),
+        "nonce": base64.b64encode(secrets.token_bytes(NONCE_SIZE)).decode(),
+        "tag": base64.b64encode(secrets.token_bytes(16)).decode(),
     }
 
     with pytest.raises(Exception):
@@ -114,7 +115,7 @@ def test_encrypt_file(tmp_files):
     Test encrypting a file.
     """
     plaintext_file, encrypted_file, _ = tmp_files
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     encrypt_file(plaintext_file, encrypted_file, key)
 
@@ -133,7 +134,7 @@ def test_decrypt_file(tmp_files):
     Test decrypting a file.
     """
     plaintext_file, encrypted_file, decrypted_file = tmp_files
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     # Encrypt and then decrypt the file
     encrypt_file(plaintext_file, encrypted_file, key)
@@ -151,8 +152,8 @@ def test_encrypt_and_decrypt_file_invalid_key(tmp_files):
     Test decrypting a file with an invalid key.
     """
     plaintext_file, encrypted_file, decrypted_file = tmp_files
-    key = os.urandom(KEY_SIZE)
-    wrong_key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
+    wrong_key = secrets.token_bytes(KEY_SIZE)
 
     # Encrypt the file
     encrypt_file(plaintext_file, encrypted_file, key)

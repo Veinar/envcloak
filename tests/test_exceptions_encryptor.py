@@ -1,5 +1,6 @@
 import pytest
 import os
+import secrets
 import json
 from envcloak.exceptions import (
     InvalidSaltException,
@@ -22,7 +23,7 @@ from envcloak.constants import SALT_SIZE, KEY_SIZE, NONCE_SIZE
 
 def test_derive_key_invalid_salt(read_variable):
     password = read_variable("pass1")
-    invalid_salt = os.urandom(SALT_SIZE - 1)  # Invalid salt size
+    invalid_salt = secrets.token_bytes(SALT_SIZE - 1)  # Invalid salt size
 
     with pytest.raises(InvalidSaltException, match="Expected salt of size"):
         derive_key(password, invalid_salt)
@@ -30,17 +31,17 @@ def test_derive_key_invalid_salt(read_variable):
 
 def test_derive_key_invalid_password():
     invalid_password = None  # Password must be a string
-    salt = os.urandom(SALT_SIZE)
+    salt = secrets.token_bytes(SALT_SIZE)
 
     with pytest.raises(InvalidKeyException, match="object has no attribute 'encode'"):
         derive_key(invalid_password, salt)
 
 
 def test_generate_salt_error(monkeypatch):
-    # Simulate os.urandom throwing an exception
+    # Simulate secrets.token_bytes throwing an exception
     monkeypatch.setattr(
-        os,
-        "urandom",
+        secrets,
+        "token_bytes",
         lambda _: (_ for _ in ()).throw(OSError("Random generation error")),
     )
 
@@ -52,7 +53,7 @@ def test_generate_salt_error(monkeypatch):
 
 def test_encrypt_invalid_key():
     data = "Sensitive data"
-    invalid_key = os.urandom(KEY_SIZE - 1)  # Key must be 32 bytes
+    invalid_key = secrets.token_bytes(KEY_SIZE - 1)  # Key must be 32 bytes
 
     with pytest.raises(EncryptionException, match="Invalid key size"):
         encrypt(data, invalid_key)
@@ -60,7 +61,7 @@ def test_encrypt_invalid_key():
 
 def test_decrypt_invalid_data():
     invalid_encrypted_data = {"ciphertext": "wrong", "nonce": "wrong", "tag": "wrong"}
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     with pytest.raises(
         DecryptionException,
@@ -72,7 +73,7 @@ def test_decrypt_invalid_data():
 def test_encrypt_file_error(tmp_path):
     input_file = tmp_path / "nonexistent.txt"  # File does not exist
     output_file = tmp_path / "output.enc"
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     with pytest.raises(FileEncryptionException, match="No such file or directory"):
         encrypt_file(str(input_file), str(output_file), key)
@@ -81,7 +82,7 @@ def test_encrypt_file_error(tmp_path):
 def test_decrypt_file_error(tmp_path):
     input_file = tmp_path / "nonexistent.enc"  # File does not exist
     output_file = tmp_path / "output.txt"
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     with pytest.raises(FileDecryptionException, match="No such file or directory"):
         decrypt_file(str(input_file), str(output_file), key)
@@ -90,7 +91,7 @@ def test_decrypt_file_error(tmp_path):
 def test_decrypt_file_invalid_content(tmp_path):
     input_file = tmp_path / "invalid.enc"
     output_file = tmp_path / "output.txt"
-    key = os.urandom(KEY_SIZE)
+    key = secrets.token_bytes(KEY_SIZE)
 
     # Write invalid encrypted content to the input file
     input_file.write_text("not a valid encrypted file", encoding="utf-8")

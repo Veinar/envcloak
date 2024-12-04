@@ -1,4 +1,5 @@
 import os
+import secrets
 import json
 from unittest.mock import patch
 from click.testing import CliRunner
@@ -19,7 +20,7 @@ def test_rotate_keys(mock_encrypt_file, mock_decrypt_file, runner, isolated_mock
     temp_decrypted_file = isolated_mock_files / "temp_variables.decrypted"
     key_file = isolated_mock_files / "mykey.key"
     temp_new_key_file = key_file.with_name("temp_newkey.key")
-    temp_new_key_file.write_bytes(os.urandom(32))
+    temp_new_key_file.write_bytes(secrets.token_bytes(32))
 
     tmp_file = str(temp_decrypted_file) + ".tmp"
 

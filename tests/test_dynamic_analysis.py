@@ -1,4 +1,5 @@
 import os
+import secrets
 from hypothesis import given, strategies as st
 from envcloak.encryptor import encrypt, decrypt, encrypt_file, decrypt_file, derive_key
 from envcloak.loader import load_encrypted_env
@@ -10,7 +11,7 @@ from envcloak.cli import main
 # Test Large Inputs for Encryption and Decryption
 @given(st.text(min_size=5, max_size=1000))
 def test_large_input_encryption_decryption(large_text):
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     encrypted = encrypt(large_text, key)
     decrypted = decrypt(encrypted, key)
     assert (
@@ -20,7 +21,7 @@ def test_large_input_encryption_decryption(large_text):
 
 # Test Empty Input for Encryption
 def test_empty_input_encryption():
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     try:
         encrypted = encrypt("", key)
         assert encrypted, "Empty input should still be encrypted successfully"
@@ -51,7 +52,7 @@ def test_invalid_key_decryption(invalid_key):
 # Test Malformed Encrypted Input for Decryption
 @given(st.binary())
 def test_malformed_encrypted_input(binary_data):
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     try:
         decrypt(binary_data, key)
         assert False, "Decryption should fail for malformed input"
@@ -62,7 +63,7 @@ def test_malformed_encrypted_input(binary_data):
 # Stress Test: Multiple Encryption-Decryption Cycles
 @given(st.text(min_size=10, max_size=100))
 def test_multiple_encryption_decryption_cycles(plain_text):
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     for _ in range(100):  # Stress test with 100 cycles
         encrypted = encrypt(plain_text, key)
         plain_text = decrypt(encrypted, key)
@@ -73,7 +74,7 @@ def test_multiple_encryption_decryption_cycles(plain_text):
 # Test Loading Encrypted Environment Variables
 def test_load_encrypted_env():
     # Prepare mock files
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     encrypted_file = "mock_variables.env.enc"
     key_file = "mock_key.key"
 
@@ -113,7 +114,7 @@ def test_load_encrypted_env():
     )
 )
 def test_randomized_env_file_content(env_data):
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     encrypted_file = "random_env_file.enc"
     decrypted_file = "random_env_file_decrypted.env"
     input_file = "random_env_file.env"
@@ -157,7 +158,7 @@ def test_randomized_env_file_content(env_data):
     )
 )
 def test_special_characters_in_env(env_data):
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     encrypted_file = "special_env_file.enc"
     decrypted_file = "special_env_file_decrypted.env"
     input_file = "special_env_file.env"
@@ -207,7 +208,7 @@ def test_key_derivation_from_password(password, salt):
 
     # Use a different password or salt
     different_password_key = derive_key(password + "1", salt)
-    different_salt_key = derive_key(password, os.urandom(16))
+    different_salt_key = derive_key(password, secrets.token_bytes(16))
 
     assert (
         key1 != different_password_key
@@ -217,7 +218,7 @@ def test_key_derivation_from_password(password, salt):
 
 @given(st.text(min_size=5, max_size=20))
 def test_invalid_file_paths(file_name):
-    key = os.urandom(32)  # Use a valid 32-byte key
+    key = secrets.token_bytes(32)  # Use a valid 32-byte key
     try:
         load_encrypted_env(file_name, "nonexistent_key.key")
         assert False, "Loading should fail with nonexistent files"
@@ -226,8 +227,8 @@ def test_invalid_file_paths(file_name):
 
 
 def test_key_rotation():
-    key_old = os.urandom(32)
-    key_new = os.urandom(32)
+    key_old = secrets.token_bytes(32)
+    key_new = secrets.token_bytes(32)
     input_file = "key_rotation_test.env"
     encrypted_file_old = "key_rotation_test_old.enc"
     encrypted_file_new = "key_rotation_test_new.enc"

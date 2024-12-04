@@ -14,6 +14,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import click
+import secrets
 from click import style
 from envcloak.exceptions import (
     InvalidSaltException,
@@ -58,7 +59,7 @@ def generate_salt() -> bytes:
     :return: Randomly generated salt (16 bytes).
     """
     try:
-        return os.urandom(SALT_SIZE)
+        return secrets.token_bytes(SALT_SIZE)
     except Exception as e:
         raise EncryptionException(details=f"Failed to generate salt: {str(e)}") from e
 
@@ -72,7 +73,7 @@ def encrypt(data: str, key: bytes) -> dict:
     :return: Dictionary with encrypted data, nonce, and associated metadata.
     """
     try:
-        nonce = os.urandom(NONCE_SIZE)  # Generate a secure random nonce
+        nonce = secrets.token_bytes(NONCE_SIZE)  # Generate a secure random nonce
         cipher = Cipher(
             algorithms.AES(key), modes.GCM(nonce), backend=default_backend()
         )
