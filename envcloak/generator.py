@@ -2,13 +2,14 @@
 import os
 from pathlib import Path
 from .encryptor import derive_key
+import secrets
 
 
 def generate_key_file(output_path: Path):
     """
     Generate a secure random encryption key, save it to a file.
     """
-    key = os.urandom(32)  # Generate a 256-bit random key
+    key = secrets.token_bytes(32)  # Generate a 256-bit random key
     output_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     with open(output_path, "wb") as key_file:
         key_file.write(key)
@@ -29,7 +30,7 @@ def generate_key_from_password_file(password: str, output_path: Path, salt: str 
             raise ValueError("Salt must be 16 bytes (32 hex characters).")
         salt_bytes = bytes.fromhex(salt)
     else:
-        salt_bytes = os.urandom(16)  # Generate a random 16-byte salt
+        salt_bytes = secrets.token_bytes(16)  # Generate a random 16-byte salt
 
     # Derive the key
     key = derive_key(password, salt_bytes)
