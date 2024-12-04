@@ -1,4 +1,5 @@
 import os
+import secrets
 from unittest.mock import patch
 from click.testing import CliRunner
 import pytest
@@ -173,7 +174,7 @@ def test_generate_key_from_password_no_gitignore(
         temp_key_file.unlink()
 
 
-@patch("envcloak.generator.os.urandom")
+@patch("envcloak.generator.secrets.token_bytes")
 @patch("envcloak.generator.derive_key")
 def test_generate_key_from_password_random_salt(
     mock_derive_key,

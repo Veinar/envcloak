@@ -1,3 +1,10 @@
+"""
+loader.py
+
+This module manages the loading of encrypted environment variables for usage in Python code as imported function.
+It decrypts and validates sensitive information and loads it in to OS env if requested.
+"""
+
 import os
 import json
 from pathlib import Path
@@ -15,6 +22,10 @@ from envcloak.exceptions import (
 
 
 class EncryptedEnvLoader:
+    """
+    Class responsible for handling inside from code requests to decrypt env variables.
+    """
+
     def __init__(self, file_path: str, key_file: str):
         """
         Initialize the EncryptedEnvLoader with an encrypted file and key file.

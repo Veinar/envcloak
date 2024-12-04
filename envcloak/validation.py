@@ -1,3 +1,10 @@
+"""
+validation.py
+
+This module offers robust validation utilities for checking user inputs, file paths, permissions,
+and other constraints required for secure and reliable operations.
+"""
+
 import os
 from pathlib import Path
 import shutil

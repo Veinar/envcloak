@@ -1,3 +1,10 @@
+"""
+encryptor.py
+
+This module implements core functionality for encrypting and decrypting files.
+It handles file traversal, key management, and cryptographic operations to ensure secure data handling.
+"""
+
 import os
 import base64
 import json
@@ -7,6 +14,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.backends import default_backend
 import click
+import secrets
 from click import style
 from envcloak.exceptions import (
     InvalidSaltException,
@@ -51,7 +59,7 @@ def generate_salt() -> bytes:
     :return: Randomly generated salt (16 bytes).
     """
     try:
-        return os.urandom(SALT_SIZE)
+        return secrets.token_bytes(SALT_SIZE)
     except Exception as e:
         raise EncryptionException(details=f"Failed to generate salt: {str(e)}") from e
 
@@ -65,7 +73,7 @@ def encrypt(data: str, key: bytes) -> dict:
     :return: Dictionary with encrypted data, nonce, and associated metadata.
     """
     try:
-        nonce = os.urandom(NONCE_SIZE)  # Generate a secure random nonce
+        nonce = secrets.token_bytes(NONCE_SIZE)  # Generate a secure random nonce
         cipher = Cipher(
             algorithms.AES(key), modes.GCM(nonce), backend=default_backend()
         )
@@ -129,16 +137,10 @@ def encrypt_file(input_file: str, output_file: str, key: bytes):
 
         # Compute hash of plaintext for integrity
         encrypted_data["sha"] = compute_sha256(data)
-        print(
-            f"Debug: SHA-256 hash of plaintext during encryption: {encrypted_data['sha']}"
-        )
 
         # Compute hash of the entire encrypted structure
         file_hash = compute_sha256(json.dumps(encrypted_data, ensure_ascii=False))
         encrypted_data["file_sha"] = file_hash  # Store this hash in the structure
-        print(
-            f"Debug: SHA-256 hash of encrypted structure (file_sha): {encrypted_data['file_sha']}"
-        )
 
         with open(output_file, "w", encoding="utf-8") as outfile:
             json.dump(encrypted_data, outfile, ensure_ascii=False)
@@ -242,7 +244,11 @@ def traverse_and_process_files(
             target_path = output_dir / relative_path
             target_path.parent.mkdir(parents=True, exist_ok=True)
 
+            output_file = str(target_path)
+            if output_file.endswith(".enc"):
+                output_file = output_file[:-4]  # Explicitly handle `.enc`
+
             if not dry_run:
-                process_file(file_path, target_path, key, debug)
+                process_file(file_path, output_file, key, debug)
             else:
-                debug_log(f"Dry-run: Would process {file_path} -> {target_path}", debug)
+                debug_log(f"Dry-run: Would process {file_path} -> {output_file}", debug)

@@ -1,5 +1,23 @@
 # CHANGELOG for EnvCloak
 
+## *[0.3.0]* - xxxx-xx-xx
+### Added
+- **Information about versatility.**
+- Added possibility to not specify output when encrypting single file (using original name with `.enc` suffix).
+- Added `--preview` flag for encrypt and decrypt command.
+- Introduced `SECURITY.md` policy with guidelines how to securely use this tool.
+- Added guidelines for integrating with popular cloud KMS.
+
+### Changed
+- Code refactor to modularize logic.
+- Increased randomness when generating salt by introducing `secure` package. (Thanks to @BavyaMittal)
+- Applied module docstrings
+
+## *[0.2.2]* - 2024-11-29
+### Changed
+
+- Fix critical error with `packaging` not declared in dependencies list.
+
 ## *[0.2.1]* & *[0.2.0]* - 2024-11-27
 > First of Beta release
 ### Added
