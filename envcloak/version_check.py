@@ -1,3 +1,10 @@
+"""
+version_check.py
+
+This module includes functionality to check for the latest version of the `envcloak` package on PyPI.
+It helps users stay updated with the newest features, enhancements, and fixes.
+"""
+
 import requests
 import click
 from packaging.version import Version, InvalidVersion
@@ -5,6 +12,19 @@ from envcloak import __version__
 
 
 def get_latest_version():
+    """
+    Fetches the latest version of the 'envcloak' package from PyPI.
+
+    This function sends a request to the PyPI API to retrieve the latest version
+    information for the 'envcloak' package.
+
+    Returns:
+        str: The latest version as a string if successful.
+        None: If an error occurs during the request.
+
+    Outputs:
+        Prints error messages to the console if the request fails or times out.
+    """
     url = "https://pypi.org/pypi/envcloak/json"
     try:
         # Send a GET request to the PyPI API
@@ -28,6 +48,17 @@ def get_latest_version():
 
 
 def warn_if_outdated():
+    """
+    Warns the user if the installed version of 'envcloak' is outdated.
+
+    This function compares the installed version of 'envcloak' with the latest version
+    available on PyPI. If the installed version is older, it displays a warning and
+    provides instructions to upgrade.
+
+    Outputs:
+        Prints a warning message with upgrade instructions if a newer version is available.
+        Prints an error message if version comparison fails or the latest version cannot be determined.
+    """
     latest_version = get_latest_version()
     current_version = __version__
 

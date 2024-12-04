@@ -1,3 +1,9 @@
+"""
+rotate_keys.py
+
+This module provides logic for key rotating using EnvCloak command.
+"""
+
 import os
 import click
 from envcloak.utils import debug_log
@@ -30,7 +36,12 @@ from envcloak.exceptions import (
     "--new-key-file", "-nk", required=True, help="Path to the new encryption key."
 )
 @click.option("--output", "-o", required=True, help="Path to the re-encrypted file.")
-def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug):
+@click.option(
+    "--preview",
+    is_flag=True,
+    help="Preview the key rotation process without making changes.",
+)
+def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug, preview):
     """
     Rotate encryption keys by re-encrypting a file with a new key.
     """
@@ -46,6 +57,18 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug):
         check_output_not_exists(output)
         check_disk_space(output, required_space=1024 * 1024)
 
+        # Handle Preview or Dry-run modes
+        if preview:
+            click.secho(
+                f"""
+Preview of Key Rotation:
+- Old key: {old_key_file} will no longer be valid for this encrypted file.
+- New key: {new_key_file} will be used to decrypt the encrypted file.
+- Encrypted file: {input} will be re-encrypted to {output}.
+                """,
+                fg="cyan",
+            )
+            return
         if dry_run:
             click.echo("Dry-run checks passed successfully.")
             return

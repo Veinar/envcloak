@@ -222,8 +222,8 @@ def test_invalid_file_paths(file_name):
     try:
         load_encrypted_env(file_name, "nonexistent_key.key")
         assert False, "Loading should fail with nonexistent files"
-    except Exception:
-        pass  # Expected exception
+    except Exception as e:
+        print(e)
 
 
 def test_key_rotation():

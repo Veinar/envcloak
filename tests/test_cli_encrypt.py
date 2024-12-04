@@ -1,14 +1,9 @@
 import os
 import json
-import shutil
-from pathlib import Path
 from unittest.mock import patch
 from click.testing import CliRunner
 import pytest
 from envcloak.cli import main
-
-# Fixtures imported from conftest.py
-# `isolated_mock_files` and `runner`
 
 
 @patch("envcloak.commands.encrypt.encrypt_file")
@@ -17,7 +12,7 @@ def test_encrypt(mock_encrypt_file, runner, isolated_mock_files):
     Test the `encrypt` CLI command.
     """
     input_file = isolated_mock_files / "variables.env"
-    encrypted_file = isolated_mock_files / "variables.temp.enc"  # Use unique temp file
+    encrypted_file = isolated_mock_files / "variables.temp.enc"
     key_file = isolated_mock_files / "mykey.key"
 
     def mock_encrypt(input_path, output_path, key):
@@ -131,7 +126,7 @@ def test_encrypt_with_force_directory(mock_encrypt_file, runner, isolated_mock_f
         ],
     )
 
-    assert "Overwriting existing file" in result.output
+    assert "Overwriting existing directory" in result.output
     mock_encrypt_file.assert_any_call(
         str(directory / "file1.env"),
         str(output_directory / "file1.env.enc"),

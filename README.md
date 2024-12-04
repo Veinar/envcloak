@@ -9,6 +9,7 @@
 
 ![GitHub License](https://img.shields.io/github/license/Veinar/envcloak)
 ![Contrib Welcome](https://img.shields.io/badge/contributions-welcome-blue)
+![Looking for](https://img.shields.io/badge/looking%20for-maintainers-228B22)
 ![Code style](https://img.shields.io/badge/code%20style-black-black)
 ![CI/CD Pipeline](https://github.com/Veinar/envcloak/actions/workflows/test.yaml/badge.svg)
 ![Build Pipeline](https://github.com/Veinar/envcloak/actions/workflows/build.yaml/badge.svg)
@@ -57,6 +58,9 @@ envcloak generate-key-from-password --password "YourTopSecretPassword" --output 
 # From random password and salt
 envcloak generate-key --output secretkey.key
 ```
+
+![generate-key-gif](https://veinar.pl/envcloak-generate-key.gif)
+
 > **What it does:** generates your private key used to encrypt and decrypt files. **Appends (or creates if needed) .gitignore as well** as super-hero should! 🎉
 
 > ⚠ **If someone knows your password and salt (option 1) can recreate same `key` - keep those variables safe as `key` itself** ⚠
@@ -66,6 +70,9 @@ envcloak generate-key --output secretkey.key
 ```bash
 envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```
+
+![encrypt-gif](https://veinar.pl/envcloak-encrypt.gif)
+
 > **What it does:** Encrypts your `.env` file with a specified key, outputting a sparkling `.env.enc` file.
 
 ### Decrypting Variables:
@@ -73,6 +80,9 @@ envcloak encrypt --input .env --output .env.enc --key-file mykey.key
 ```bash
 envcloak decrypt --input .env.enc --output .env --key-file mykey.key
 ```
+
+![decrypt-gif](https://veinar.pl/envcloak-decrypt.gif)
+
 > **What it does:** Decrypts the `.env.enc` file back to `.env` using the same key. Voilà!
 
 or you may want to use it ...
@@ -105,6 +115,7 @@ load_encrypted_env('.env.enc', key_file='mykey.key').to_os_env()
 * Works with directories using `--directory` instead of `--input` on `encrypt` and `decrypt`.
 > ℹ️ EnvCloak process files in batch one-by-one. 
 * Can [recursively](docs/recursive.md) encrypt or decrypt directories.
+* Can list files in directory that will be encrypted using `--preview` flag (ℹ️ only for directories and it does not commit the operation!).
 
 🚦 Error Handling
 

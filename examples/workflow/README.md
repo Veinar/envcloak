@@ -2,6 +2,8 @@
 
 EnvCloak simplifies the secure management of sensitive environment variables. In CI/CD workflows, the encrypted `.env.enc` file is typically created and committed manually, while the decryption happens automatically during deployment or application startup. This guide focuses on **decrypting variables** in workflows using both the `envcloak` CLI and Python code.
 
+> Examples how to integrate KMS in CI/CD process can be found [here](integration_with_kms.md). 💎
+
 ---
 
 ## Key Handling: Securely Storing `ENVCLOAK_KEY_B64`

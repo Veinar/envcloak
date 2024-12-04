@@ -1,5 +1,9 @@
 # CHANGELOG for EnvCloak
 
+## *[0.2.2]* - 2024-11-29
+
+Fix critical error with `packaging` not declared in dependencies list.
+
 ## *[0.2.1]* & *[0.2.0]* - 2024-11-27
 > First of Beta release
 ### Added

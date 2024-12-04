@@ -1,6 +1,20 @@
+"""
+utils.py
+
+This module provides helper functions and common utilities to support various operations
+in the `envcloak` package, such as logging, checksum calculation, and general-purpose tools.
+"""
+
 import os
 import hashlib
 from pathlib import Path
+import click
+from envcloak.validation import (
+    check_file_exists,
+    check_directory_exists,
+    check_permissions,
+    check_directory_not_empty,
+)
 
 
 def add_to_gitignore(directory: str, filename: str):
@@ -51,6 +65,47 @@ def calculate_required_space(input=None, directory=None):
     return 0
 
 
+def list_files_to_encrypt(directory, recursion):
+    """
+    List files in a directory that would be encrypted.
+
+    :param directory: Path to the directory to scan.
+    :param recursion: Whether to scan directories recursively.
+    :return: List of file paths.
+    """
+    path = Path(directory)
+    if not path.is_dir():
+        raise click.UsageError(f"The specified path {directory} is not a directory.")
+
+    files = []
+    if recursion:
+        files = list(path.rglob("*"))  # Recursive glob
+    else:
+        files = list(path.glob("*"))  # Non-recursive glob
+
+    # Filter only files
+    files = [str(f) for f in files if f.is_file()]
+    return files
+
+
+def validate_paths(input=None, directory=None, key_file=None, output=None, debug=False):
+    """Perform validation for common parameters."""
+    if input and directory:
+        raise click.UsageError(
+            "You must provide either --input or --directory, not both."
+        )
+    if not input and not directory:
+        raise click.UsageError("You must provide either --input or --directory.")
+    if key_file:
+        debug_log(f"Debug: Validating key file {key_file}.", debug)
+        check_file_exists(key_file)
+        check_permissions(key_file)
+    if directory:
+        debug_log(f"Debug: Validating directory {directory}.", debug)
+        check_directory_exists(directory)
+        check_directory_not_empty(directory)
+
+
 def debug_log(message, debug):
     """
     Print message only if debug is true
@@ -71,3 +126,20 @@ def compute_sha256(data: str) -> str:
     :return: SHA-256 hash as a hex string.
     """
     return hashlib.sha3_256(data.encode()).hexdigest()
+
+
+def read_key_file(key_file, debug):
+    """
+    Reads a cryptographic key from a file and logs the operation if debugging is enabled.
+
+    Args:
+        key_file (str or Path): The path to the file containing the cryptographic key.
+        debug (bool): If True, logs debugging information about the operation.
+
+    Returns:
+        bytes: The binary content of the key file.
+    """
+    with open(key_file, "rb") as kf:
+        key = kf.read()
+        debug_log(f"Debug: Key file {key_file} read successfully.", debug)
+        return key
