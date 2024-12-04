@@ -3,8 +3,10 @@ from pathlib import Path
 import pytest
 import shutil
 import tempfile
+import secrets
 from click.testing import CliRunner
 from envcloak.cli import main
+
 
 
 @pytest.fixture
@@ -149,7 +151,7 @@ def test_rotate_keys_dry_run(runner, mock_files):
     """
     _, encrypted_file, key_file, directory = mock_files
     new_key_file = directory / "newkey.key"
-    new_key_file.write_bytes(os.urandom(32))
+    new_key_file.write_bytes(secrets.token_bytes(32))
     output_file = str(encrypted_file).replace(".enc", ".rotated")
 
     result = runner.invoke(
