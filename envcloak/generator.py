@@ -20,10 +20,13 @@ def generate_key_file(output_path: Path, quiet: bool):
     output_path.parent.mkdir(parents=True, exist_ok=True)  # Ensure directory exists
     with open(output_path, "wb") as key_file:
         key_file.write(key)
-    if not quiet: print(f"Encryption key generated and saved to {output_path}")
+    if not quiet:
+        print(f"Encryption key generated and saved to {output_path}")
 
 
-def generate_key_from_password_file(password: str, output_path: Path, quiet: bool, salt: str = None):
+def generate_key_from_password_file(
+    password: str, output_path: Path, quiet: bool, salt: str = None
+):
     """
     Derive an encryption key from a password and save it to a file.
     If no salt is provided, a random one is generated.
@@ -49,4 +52,5 @@ def generate_key_from_password_file(password: str, output_path: Path, quiet: boo
     with open(output_path, "wb") as key_file:
         key_file.write(key)
 
-    if not quiet: print(f"Derived encryption key saved to {output_path}")
+    if not quiet:
+        print(f"Derived encryption key saved to {output_path}")

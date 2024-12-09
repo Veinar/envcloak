@@ -9,7 +9,9 @@ from envcloak.utils import (
     debug_log,
     calculate_required_space,
     list_files_to_encrypt,
-    read_key_file, conditional_echo, conditional_secho
+    read_key_file,
+    conditional_echo,
+    conditional_secho,
 )
 from envcloak.handlers import (
     handle_directory_preview,
@@ -132,7 +134,9 @@ def decrypt(
                 debug,
             )
             decrypt_file(input, output, key, validate_integrity=not skip_sha_validation)
-            conditional_echo(f"File {input} decrypted -> {output} using key {key_file}", quiet)
+            conditional_echo(
+                f"File {input} decrypted -> {output} using key {key_file}", quiet
+            )
         elif directory:
             debug_log(f"Debug: Decrypting files in directory {directory}.", debug)
             traverse_and_process_files(
@@ -149,7 +153,9 @@ def decrypt(
                 ),
                 recursion=recursion,
             )
-            conditional_echo(f"All files in directory {directory} decrypted -> {output}", quiet)
+            conditional_echo(
+                f"All files in directory {directory} decrypted -> {output}", quiet
+            )
     except FileDecryptionException as e:
         click.echo(
             f"Error during decryption: Error: Failed to decrypt the file.\nDetails: {e.details}",

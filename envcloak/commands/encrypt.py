@@ -10,7 +10,9 @@ from envcloak.utils import (
     calculate_required_space,
     list_files_to_encrypt,
     validate_paths,
-    read_key_file, conditional_echo, conditional_secho
+    read_key_file,
+    conditional_echo,
+    conditional_secho,
 )
 from envcloak.handlers import (
     handle_directory_preview,
@@ -108,7 +110,9 @@ def encrypt(
                 debug,
             )
             encrypt_file(input, output, key)
-            conditional_echo(f"File {input} encrypted -> {output} using key {key_file}", quiet)
+            conditional_echo(
+                f"File {input} encrypted -> {output} using key {key_file}", quiet
+            )
         elif directory:
             debug_log(f"Debug: Encrypting files in directory {directory}.", debug)
             traverse_and_process_files(
@@ -122,7 +126,9 @@ def encrypt(
                 ),
                 recursion=recursion,
             )
-            conditional_echo(f"All files in directory {directory} encrypted -> {output}", quiet)
+            conditional_echo(
+                f"All files in directory {directory} encrypted -> {output}", quiet
+            )
     except FileEncryptionException as e:
         click.echo(
             f"Error: An error occurred during file encryption.\nDetails: {e}",

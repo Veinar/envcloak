@@ -32,12 +32,14 @@ def add_to_gitignore(directory: str, filename: str, quiet: bool):
             content = gitignore_file.read()
             if filename not in content:
                 gitignore_file.write(f"\n{filename}")
-                if not quiet: print(f"Added '{filename}' to {gitignore_path}")
+                if not quiet:
+                    print(f"Added '{filename}' to {gitignore_path}")
     else:
         # Create a new .gitignore file and add the filename
         with open(gitignore_path, "w", encoding="utf-8") as gitignore_file:
             gitignore_file.write(f"{filename}\n")
-        if not quiet: print(f"Created {gitignore_path} and added '{filename}'")
+        if not quiet:
+            print(f"Created {gitignore_path} and added '{filename}'")
 
 
 def calculate_required_space(input=None, directory=None):
@@ -144,12 +146,14 @@ def read_key_file(key_file, debug):
         debug_log(f"Debug: Key file {key_file} read successfully.", debug)
         return key
 
+
 def conditional_echo(message, quiet, **kwargs):
     """
     Echo a message only if `quiet` is False.
     """
     if not quiet:
         click.echo(message, **kwargs)
+
 
 def conditional_secho(message, quiet, **kwargs):
     """

@@ -73,7 +73,8 @@ Preview of Key Rotation:
 - New key: {new_key_file} will be used to decrypt the encrypted file.
 - Encrypted file: {input} will be re-encrypted to {output}.
                 """,
-                fg="cyan", quiet=quiet
+                fg="cyan",
+                quiet=quiet,
             )
             return
         if dry_run:

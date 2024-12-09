@@ -8,7 +8,12 @@ from pathlib import Path
 import click
 from envcloak.validation import check_output_not_exists, check_disk_space
 from envcloak.generator import generate_key_file
-from envcloak.utils import add_to_gitignore, debug_log, conditional_echo, conditional_secho
+from envcloak.utils import (
+    add_to_gitignore,
+    debug_log,
+    conditional_echo,
+    conditional_secho,
+)
 from envcloak.decorators.common_decorators import (
     debug_option,
     dry_run_option,
