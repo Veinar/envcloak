@@ -11,6 +11,8 @@ from envcloak.utils import (
     list_files_to_encrypt,
     validate_paths,
     read_key_file,
+    conditional_echo,
+    conditional_secho,
 )
 from envcloak.handlers import (
     handle_directory_preview,
@@ -23,6 +25,7 @@ from envcloak.decorators.common_decorators import (
     dry_run_option,
     recursion_option,
     preview_option,
+    quiet_option,
 )
 from envcloak.validation import (
     check_disk_space,
@@ -34,6 +37,7 @@ from envcloak.exceptions import (
 
 
 @click.command()
+@quiet_option
 @debug_option
 @dry_run_option
 @force_option
@@ -58,7 +62,7 @@ from envcloak.exceptions import (
     "--key-file", "-k", required=True, help="Path to the encryption key file."
 )
 def encrypt(
-    input, directory, output, key_file, dry_run, force, debug, recursion, preview
+    input, directory, output, key_file, dry_run, force, debug, recursion, preview, quiet
 ):
     """
     Encrypt environment variables from a file or all files in a directory.
@@ -106,7 +110,9 @@ def encrypt(
                 debug,
             )
             encrypt_file(input, output, key)
-            click.echo(f"File {input} encrypted -> {output} using key {key_file}")
+            conditional_echo(
+                f"File {input} encrypted -> {output} using key {key_file}", quiet
+            )
         elif directory:
             debug_log(f"Debug: Encrypting files in directory {directory}.", debug)
             traverse_and_process_files(
@@ -120,7 +126,9 @@ def encrypt(
                 ),
                 recursion=recursion,
             )
-            click.echo(f"All files in directory {directory} encrypted -> {output}")
+            conditional_echo(
+                f"All files in directory {directory} encrypted -> {output}", quiet
+            )
     except FileEncryptionException as e:
         click.echo(
             f"Error: An error occurred during file encryption.\nDetails: {e}",

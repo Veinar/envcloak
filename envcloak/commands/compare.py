@@ -7,8 +7,11 @@ This module provides logic for compare command of EnvCloak
 import click
 from click import style
 from envcloak.comparator import compare_files_or_directories
-from envcloak.utils import debug_log
-from envcloak.decorators.common_decorators import debug_option, no_sha_validation_option
+from envcloak.utils import debug_log, conditional_echo, conditional_secho
+from envcloak.decorators.common_decorators import (
+    debug_option,
+    no_sha_validation_option,
+)
 
 
 @click.command()

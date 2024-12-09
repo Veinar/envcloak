@@ -8,8 +8,17 @@ from pathlib import Path
 import click
 from envcloak.validation import check_output_not_exists, check_disk_space, validate_salt
 from envcloak.generator import generate_key_from_password_file
-from envcloak.utils import debug_log, add_to_gitignore
-from envcloak.decorators.common_decorators import debug_option, dry_run_option
+from envcloak.utils import (
+    debug_log,
+    add_to_gitignore,
+    conditional_echo,
+    conditional_secho,
+)
+from envcloak.decorators.common_decorators import (
+    debug_option,
+    dry_run_option,
+    quiet_option,
+)
 from envcloak.exceptions import (
     OutputFileExistsException,
     DiskSpaceException,
@@ -19,6 +28,7 @@ from envcloak.exceptions import (
 
 @click.command()
 @debug_option
+@quiet_option
 @dry_run_option
 @click.option(
     "--password", "-p", required=True, help="Password to derive the encryption key."
@@ -32,7 +42,9 @@ from envcloak.exceptions import (
 @click.option(
     "--no-gitignore", is_flag=True, help="Skip adding the key file to .gitignore."
 )
-def generate_key_from_password(password, salt, output, no_gitignore, dry_run, debug):
+def generate_key_from_password(
+    password, salt, output, no_gitignore, dry_run, debug, quiet
+):
     """
     Derive an encryption key from a password and salt.
     """
@@ -58,12 +70,12 @@ def generate_key_from_password(password, salt, output, no_gitignore, dry_run, de
         # Actual key derivation logic
         debug_log(f"Debug: Deriving key from password for output file {output}.", debug)
         output_path = Path(output)
-        generate_key_from_password_file(password, output_path, salt)
+        generate_key_from_password_file(password, output_path, quiet, salt)
         if not no_gitignore:
             debug_log(
                 f"Debug: Adding {output_path.name} to .gitignore in parent directory {output_path.parent}.",
                 debug,
             )
-            add_to_gitignore(output_path.parent, output_path.name)
+            add_to_gitignore(output_path.parent, output_path.name, quiet)
     except (OutputFileExistsException, DiskSpaceException, InvalidSaltException) as e:
         click.echo(f"Error during key derivation: {str(e)}")

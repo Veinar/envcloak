@@ -69,3 +69,14 @@ def preview_option(func):
         is_flag=True,
         help="List files that will be decrypted (only applicable for directories).",
     )(func)
+
+
+def quiet_option(func):
+    """
+    Add a `--quiet` flag to a Click command.
+    """
+    return click.option(
+        "--quiet",
+        is_flag=True,
+        help="Suppress all output except errors.",
+    )(func)
