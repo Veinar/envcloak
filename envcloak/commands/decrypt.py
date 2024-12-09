@@ -9,7 +9,7 @@ from envcloak.utils import (
     debug_log,
     calculate_required_space,
     list_files_to_encrypt,
-    read_key_file,
+    read_key_file, conditional_echo, conditional_secho
 )
 from envcloak.handlers import (
     handle_directory_preview,
@@ -23,6 +23,7 @@ from envcloak.decorators.common_decorators import (
     no_sha_validation_option,
     recursion_option,
     preview_option,
+    quiet_option,
 )
 from envcloak.validation import (
     check_file_exists,
@@ -39,6 +40,7 @@ from envcloak.exceptions import (
 
 @click.command()
 @debug_option
+@quiet_option
 @dry_run_option
 @force_option
 @no_sha_validation_option
@@ -76,6 +78,7 @@ def decrypt(
     skip_sha_validation,
     recursion,
     preview,
+    quiet,
 ):
     """
     Decrypt environment variables from a file or all files in a directory.
@@ -129,7 +132,7 @@ def decrypt(
                 debug,
             )
             decrypt_file(input, output, key, validate_integrity=not skip_sha_validation)
-            click.echo(f"File {input} decrypted -> {output} using key {key_file}")
+            conditional_echo(f"File {input} decrypted -> {output} using key {key_file}", quiet)
         elif directory:
             debug_log(f"Debug: Decrypting files in directory {directory}.", debug)
             traverse_and_process_files(
@@ -146,7 +149,7 @@ def decrypt(
                 ),
                 recursion=recursion,
             )
-            click.echo(f"All files in directory {directory} decrypted -> {output}")
+            conditional_echo(f"All files in directory {directory} decrypted -> {output}", quiet)
     except FileDecryptionException as e:
         click.echo(
             f"Error during decryption: Error: Failed to decrypt the file.\nDetails: {e.details}",

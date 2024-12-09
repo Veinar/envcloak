@@ -6,8 +6,12 @@ This module provides logic for key rotating using EnvCloak command.
 
 import os
 import click
-from envcloak.utils import debug_log
-from envcloak.decorators.common_decorators import debug_option, dry_run_option
+from envcloak.utils import debug_log, conditional_echo, conditional_secho
+from envcloak.decorators.common_decorators import (
+    debug_option,
+    dry_run_option,
+    quiet_option,
+)
 from envcloak.validation import (
     check_file_exists,
     check_permissions,
@@ -25,6 +29,7 @@ from envcloak.exceptions import (
 
 @click.command()
 @debug_option
+@quiet_option
 @dry_run_option
 @click.option(
     "--input", "-i", required=True, help="Path to the encrypted file to re-encrypt."
@@ -41,7 +46,9 @@ from envcloak.exceptions import (
     is_flag=True,
     help="Preview the key rotation process without making changes.",
 )
-def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug, preview):
+def rotate_keys(
+    input, old_key_file, new_key_file, output, dry_run, debug, preview, quiet
+):
     """
     Rotate encryption keys by re-encrypting a file with a new key.
     """
@@ -59,14 +66,14 @@ def rotate_keys(input, old_key_file, new_key_file, output, dry_run, debug, previ
 
         # Handle Preview or Dry-run modes
         if preview:
-            click.secho(
+            conditional_secho(
                 f"""
 Preview of Key Rotation:
 - Old key: {old_key_file} will no longer be valid for this encrypted file.
 - New key: {new_key_file} will be used to decrypt the encrypted file.
 - Encrypted file: {input} will be re-encrypted to {output}.
                 """,
-                fg="cyan",
+                fg="cyan", quiet=quiet
             )
             return
         if dry_run:
@@ -95,7 +102,7 @@ Preview of Key Rotation:
 
         debug_log(f"Debug: Removing temporary decrypted file {temp_decrypted}.", debug)
         os.remove(temp_decrypted)  # Clean up temporary file
-        click.echo(f"Keys rotated for {input} -> {output}")
+        conditional_echo(f"Keys rotated for {input} -> {output}", quiet)
     except (
         OutputFileExistsException,
         DiskSpaceException,
