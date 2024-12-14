@@ -9,7 +9,7 @@ from envcloak.cli import main
 # `runner` and `isolated_mock_files`
 
 
-@patch("envcloak.commands.generate_key.add_to_gitignore")
+@patch("envcloak.utils.add_to_gitignore")
 @patch("envcloak.commands.generate_key.generate_key_file")
 def test_generate_key_with_gitignore(
     mock_generate_key_file, mock_add_to_gitignore, runner, isolated_mock_files
@@ -31,10 +31,7 @@ def test_generate_key_with_gitignore(
     result = runner.invoke(main, ["generate-key", "--output", str(temp_key_file)])
 
     # Assertions
-    mock_generate_key_file.assert_called_once_with(temp_key_file)
-    mock_add_to_gitignore.assert_called_once_with(
-        temp_key_file.parent, temp_key_file.name
-    )
+    mock_generate_key_file.assert_called_once_with(temp_key_file, False)
 
     # Cleanup
     if temp_key_file.exists():
@@ -65,7 +62,7 @@ def test_generate_key_no_gitignore(
     )
 
     # Assertions
-    mock_generate_key_file.assert_called_once_with(temp_key_file)
+    mock_generate_key_file.assert_called_once_with(temp_key_file, False)
     mock_add_to_gitignore.assert_not_called()
 
     # Cleanup
@@ -73,7 +70,7 @@ def test_generate_key_no_gitignore(
         temp_key_file.unlink()
 
 
-@patch("envcloak.commands.generate_key_from_password.add_to_gitignore")
+@patch("envcloak.utils.add_to_gitignore")
 @patch("envcloak.commands.generate_key_from_password.generate_key_from_password_file")
 def test_generate_key_from_password_with_gitignore(
     mock_generate_key_from_password_file,
@@ -112,10 +109,7 @@ def test_generate_key_from_password_with_gitignore(
 
     # Assertions
     mock_generate_key_from_password_file.assert_called_once_with(
-        password, temp_key_file, salt
-    )
-    mock_add_to_gitignore.assert_called_once_with(
-        temp_key_file.parent, temp_key_file.name
+        password, temp_key_file, False, salt
     )
 
     # Cleanup
@@ -165,7 +159,7 @@ def test_generate_key_from_password_no_gitignore(
 
     # Assertions
     mock_generate_key_from_password_file.assert_called_once_with(
-        password, temp_key_file, salt
+        password, temp_key_file, False, salt
     )
     mock_add_to_gitignore.assert_not_called()
 
