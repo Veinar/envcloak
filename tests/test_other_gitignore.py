@@ -17,7 +17,7 @@ def test_add_to_gitignore_existing_file(tmp_path, capsys):
     gitignore_path.write_text(existing_content, encoding="utf-8")
 
     # Call the function to add a new filename
-    add_to_gitignore(str(directory), filename)
+    add_to_gitignore(str(directory), filename, False)
 
     # Verify that the filename was appended
     updated_content = gitignore_path.read_text(encoding="utf-8")
@@ -49,7 +49,7 @@ def test_add_to_gitignore_already_listed(tmp_path, capsys):
     gitignore_path.write_text(existing_content, encoding="utf-8")
 
     # Call the function
-    add_to_gitignore(str(directory), filename)
+    add_to_gitignore(str(directory), filename, False)
 
     # Verify that the content remains unchanged
     updated_content = gitignore_path.read_text(encoding="utf-8")
